@@ -8,6 +8,9 @@
   <body>
     <header>
       <h1>Annotation interface</h1>
+      {% if username %}
+      <p>Hello, {{ username }}! <a href="/logout">Logout</a></p>
+      {% endif %}
     </header>
     <main>
       {% block content %}{% endblock %}
