@@ -1,10 +1,15 @@
+<!-- this is a flask template for the main page, the reset of the pages will extedn this template, the main block is called content -->
 <!doctype html>
 <html>
-<head>
-  <title>Regional QA</title>
-</head>
-<body>
-	<h1>Hello</h1>
-	<p>Powered by flask</p>
-</body>
-</html>
+  <head>
+    <title>{% block title %}Home{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <header>
+      <h1>Annotation interface</h1>
+    </header>
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+  </body>

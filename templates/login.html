@@ -1,0 +1,13 @@
+<!-- this is a flask template for a simple login page -->
+<!-- extends the index.html template and adds a login form -->
+
+{% extends "index.html" %}
+
+{% block content %}
+		<h2>Login</h2>
+		<form method="POST">
+				<input type="text" name="username" placeholder="Username" required>
+				<input type="password" name="password" placeholder="Password" required>
+				<input type="submit" value="Login">
+		</form>
+{% endblock %}
