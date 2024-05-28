@@ -5,26 +5,111 @@
 {% block content %}
 <p>Here you can annotate the data, {{username}}</p>
 
-<!-- the page contains an iframe on the RIGHT hand side with a page from a given URL usign style flex: 1
-     on the left hand side there is a form with two fields qeustion and answer and two buttons
-     one to submit the form and the other to skip the current question and move to the next one
+<script>
+  $(document).ready(function(){
 
-     the default question and answer values are stored in question and answer variables
-  -->
-<div style="display: flex;">
-  <div style="flex: 1;">
-    <form action="/annotate" method="post">
-      <label for="question">Question:</label><br>
-      <input type="text" id="question" name="question" value="{{question}}"><br>
-      <label for="answer">Answer:</label><br>
-      <input type="text" id="answer" name="answer" value="{{answer}}"><br><br>
-      <input type="submit" value="Submit">
-      <input type="submit" value="Skip" name="skip">
-    </form>
-  </div>
-  <div style="flex: 1;">
-    <iframe src="{{url}}" width="100%" height="100%"></iframe>
-  </div>
+    $.ajax({
+        type: "GET",
+        url: "https://{{wiki_lang}}.wikipedia.org/w/api.php?action=parse&format=json&prop=text&page={{wiki_title}}&callback=?",
+        contentType: "application/json; charset=utf-8",
+        async: false,
+        dataType: "json",
+        success: function (data, textStatus, jqXHR) {
+
+            var content = data.parse.text["*"];
+	    // remove <style> tags from the content:
+	    content = content.replace(/<style([\s\S]*?)<\/style>/g, '');
+	    var title = data.parse.title;
+	    $('#title').html(title);
+            $('#article').html(content)
+
+        },
+        error: function (errorMessage) {
+        }
+    });
+  });
+</script>
+
+<!-- hide infoboxes -->
+<style>
+  .infobox {
+	display: none;
+  }
+  .sidebar {
+      	display: none;
+  }
+  .metadata {
+	  	display: none;
+  }
+  .mw-editsection {
+      	display: none;
+  }
+
+  /* #form { */
+  /*     position: fixed; */
+  /*     left: calc(50% + (400px/2)) ; */
+
+  /* } */
+</style>
+
+
+<div class="row">
+
+
+<div id="form" class="col-sm-3 position-sticky top-0 h-50">
+  <!--here i need  aform with four fields: Question, answer, skip, submit-->
+  <!-- answer and question need to be long text fields -->
+
+
+  <form action="/annotate" method="post">
+    <!--hidden fields for wiki title and language -->
+    <input type="hidden" id="wiki_title" name="wiki_title" value="{{wiki_title}}">
+    <input type="hidden" id="wiki_lang" name="wiki_lang" value="{{wiki_lang}}">
+
+    <div class="form-group">
+      <label for="question">Question:</label>
+      <textarea class="form-control" id="question" name="question" rows="3"></textarea>
+    </div>
+    <div class="form-group">
+      <label for="answer">Answer:</label>
+      <textarea class="form-control" id="answer" name="answer" rows="3"></textarea>
+    </div>
+    <div class="form-group">
+      <button type="submit" class="btn btn-light" name="skip">Skip</button>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+  </form>
+
 </div>
+
+<div class="col">
+  <h1 id="title" class="col-sm-12"></h1>
+  <div id="article" class="col"></div>
+</div>
+
+</div>
+
+
+
+
+
+
+<!-- <p>URL: <span id="iframe-url"></span></p> -->
+<!-- <div style="display: flex;"> -->
+<!--     <div style="flex: 1;"> -->
+<!--     <form action="/annotate" method="post"> -->
+<!--       <label for="question">Question:</label><br> -->
+<!--       <input type="text" id="question" name="question" value="{{question}}"><br> -->
+<!--       <label for="answer">Answer:</label><br> -->
+<!--       <input type="text" id="answer" name="answer" value="{{answer}}"><br><br> -->
+<!--       <input type="submit" value="Submit"> -->
+<!--       <input type="submit" value="Skip" name="skip"> -->
+<!--     </form> -->
+<!--   </div> -->
+<!--   <div class="embed-responsive"> -->
+<!--     <\!-- the iframe should update the URL span with the current URL of the iframe using onLoad -\-> -->
+<!--     <iframe class="embed-responsive-item" src="{{url}}" width="100%" height="800px"></iframe> -->
+<!--   </div> -->
+<!-- </div> -->
 
 {% endblock %}
