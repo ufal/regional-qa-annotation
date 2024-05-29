@@ -17,11 +17,22 @@
 
 
 <div class="container">
-  <h1>Annotation interface</h1>
-  {% if username %}
-  <p>Hello, {{ username }}! <a href="/logout">Logout</a></p>
-  {% endif %}
+  <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
 
+    <div class="col-md-3 mb-2 mb-md-0">
+      <a href="/" class="d-inline-flex link-body-emphasis text-decoration-none">Regional QA</a>
+    </div>
+
+    <div class="col-md-3 text-end">
+
+      {% if username %}
+        <a href="/logout" role="button" class="btn btn-outline-primary me-2">Logout {{username}}</a>
+      {% else %}
+        <a href="/login" role="button" class="btn btn-outline-primary me-2">Login</a>
+      {% endif %}
+
+    </div>
+  </header>
 
   {% block content %}{% endblock %}
 
