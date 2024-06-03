@@ -2,6 +2,7 @@
 import hashlib
 import jsonlines
 import requests
+import time
 from flask import Flask, render_template, request, redirect, url_for
 from functools import wraps
 
@@ -29,9 +30,8 @@ def logged_in(f):
 @app.route("/")
 @logged_in
 def index():
-    username = request.cookies.get("username")
-    random_title = get_random_article(users[username]["lang"])
-    return redirect(url_for("annotate_wiki", wiki_title=random_title))
+    # todo here might be some sort of dashboard
+    return redirect(url_for("annotate_random"))
 
 
 @app.route("/annotate/<string:wiki_title>")
@@ -43,6 +43,23 @@ def annotate_wiki(wiki_title):
         username=username,
         wiki_lang=users[username]["lang"],
         wiki_title=wiki_title,
+        random_page=False,
+        timestamp=time.time(),
+        question="",
+        answer="")
+
+@app.route("/annotate", methods=["GET"])
+@logged_in
+def annotate_random():
+    username = request.cookies.get("username")
+    random_title = get_random_article(users[username]["lang"])
+    return render_template(
+        "annotate.html",
+        username=username,
+        wiki_lang=users[username]["lang"],
+        wiki_title=random_title,
+        random_page=True,
+        timestamp=time.time(),
         question="",
         answer="")
 
@@ -56,9 +73,7 @@ def annotate():
     with jsonlines.open(users[username]["logfile"], "a") as writer:
         writer.write(anot.to_json_dict())
 
-    # redirect to random article
-    random_title = get_random_article(users[username]["lang"])
-    return redirect(url_for("annotate_wiki", wiki_title=random_title))
+    return redirect(url_for("annotate_random"))
 
 
 @app.route("/wiki/<string:wiki_title>")
@@ -77,8 +92,7 @@ def login():
             request.form["password"].encode()).hexdigest()
 
         if username in users and users[username]["passwd"] == password:
-            random_title = get_random_article(users[username]["lang"])
-            response = redirect(url_for("annotate_wiki", wiki_title=random_title))
+            response = redirect(url_for("index"))
             response.set_cookie("username", username)
             return response
         else:
