@@ -57,10 +57,21 @@ def annotate():
     question = request.form["question"].replace("\n", " ").strip()
     answer = request.form["answer"].replace("\n", " ").strip()
 
+    contains_image_info = request.form.get("imgurl") is None
+    if contains_image_info:
+        image_url = request.form["imgurl"].strip()
+        image_question = request.form["img-question"].replace("\n", " ").strip()
+        image_answer = request.form["img-answer"].replace("\n", " ").strip()
+    else:
+        image_url = "null"
+        image_question = "null"
+        image_answer = "null"
+
     with open(users[username]["logfile"], "a") as f:
-        f.write("{}\t{}\t{}\t{}\n".format(
+        f.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
             wiki_lang, wiki_title,
-            question.replace('\t', ' '), answer.replace('\t', ' ')))
+            question.replace('\t', ' '), answer.replace('\t', ' '),
+            image_url, image_question.replace('\t', ' '), image_answer.replace('\t', ' ')))
 
     # redirect to random article
     random_title = get_random_article(users[username]["lang"])
