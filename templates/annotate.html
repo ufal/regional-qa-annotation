@@ -5,44 +5,98 @@
 {% block content %}
 
 <script>
-  $(document).ready(function(){
+$(document).ready(function(){
+  $.ajax({
+    type: "GET",
+    url: "https://{{wiki_lang}}.wikipedia.org/w/api.php?action=parse&format=json&prop=text&page={{wiki_title}}&callback=?",
+    contentType: "application/json; charset=utf-8",
+    async: false,
+    dataType: "json",
+    success: function (data, textStatus, jqXHR) {
 
-      $.ajax({
-          type: "GET",
-          url: "https://{{wiki_lang}}.wikipedia.org/w/api.php?action=parse&format=json&prop=text&page={{wiki_title}}&callback=?",
-          contentType: "application/json; charset=utf-8",
-          async: false,
-          dataType: "json",
-          success: function (data, textStatus, jqXHR) {
+      var content = data.parse.text["*"];
+      // remove <style> tags from the content:
+      content = content.replace(/<style([\s\S]*?)<\/style>/g, '');
+      var title = data.parse.title;
 
-              var content = data.parse.text["*"];
-	      // remove <style> tags from the content:
-	      content = content.replace(/<style([\s\S]*?)<\/style>/g, '');
-	      var title = data.parse.title;
-	      $('#title').html(title);
-              $('#article').html(content)
-
-          },
-          error: function (errorMessage) {
-          }
-      });
-
-      $('#article').on('click', 'img', function(e){
-          e.preventDefault();
-          var img_url = $(this).attr('src');
-          $('#imgurl').val(img_url);
-      });
-
-      //hide image controls when "Do not include visual Q&A" is checked
-      $('#disable-img').change(function() {
-	  if(this.checked) {
-	      $('#image-controls').hide();
-	  } else {
-	      $('#image-controls').show();
-	  }
-      });
-
+      $('#title').html(title);
+      $('#article').html(content);
+    },
+    error: function (errorMessage) {}
   });
+
+  $('#article').on('click', 'img', function(e){
+    e.preventDefault();
+    var img_url = $(this).attr('src');
+    $('#imgurl').val(img_url);
+  });
+
+  //hide image controls when "Do not include visual Q&A" is checked
+  $('#disable_img').change(function() {
+    if(this.checked) {
+        $('#image-controls').hide();
+    } else {
+        $('#image-controls').show();
+    }
+  });
+
+
+  //form validation
+  $('form').submit(function(e){
+
+    // we only want to validate if the submit button was pressed
+    var button = $(document.activeElement).attr('name');
+    if (button == 'skip') {
+      return;
+    }
+
+    var question = $('#question').val();
+    var answer = $('#answer').val();
+    var img_url = $('#imgurl').val();
+    var img_question = $('#img_question').val();
+    var img_answer = $('#img_answer').val();
+
+    if(question == "") {
+      $('#question').addClass('is-invalid');
+      e.preventDefault();
+    } else {
+      $('#question').removeClass('is-invalid');
+    }
+
+    if(answer == "") {
+      $('#answer').addClass('is-invalid');
+      e.preventDefault();
+    } else {
+      $('#answer').removeClass('is-invalid');
+    }
+
+    if ($('#disable_img').prop('checked') == false) {
+      if(img_url == "") {
+        $('#imgurl').addClass('is-invalid');
+        e.preventDefault();
+      } else {
+        $('#imgurl').removeClass('is-invalid');
+      }
+
+      if(img_question == "") {
+        $('#img_question').addClass('is-invalid');
+        e.preventDefault();
+      } else {
+        $('#img_question').removeClass('is-invalid');
+      }
+
+      if(img_answer == "") {
+        $('#img_answer').addClass('is-invalid');
+        e.preventDefault();
+      } else {
+        $('#img_answer').removeClass('is-invalid');
+      }
+    }
+  });
+
+
+
+});
 
 </script>
 
@@ -73,11 +127,9 @@
   /* } */
 </style>
 
-
-
 <div class="container-fluid p-0 d-flex h-100">
   <nav class="d-flex flex-column flex-shrink-0 p-3 position-sticky sticky-top h-50" style="width: 320px;">
-    <form action="/annotate" method="post">
+    <form action="/annotate" method="post" novalidate>
       <!--hidden fields for wiki title and language -->
       <input type="hidden" id="wiki_title" name="wiki_title" value="{{wiki_title}}">
       <input type="hidden" id="wiki_lang" name="wiki_lang" value="{{wiki_lang}}">
@@ -85,11 +137,13 @@
       <div class="form-group">
         <label for="question">Question:</label>
         <textarea class="form-control" id="question" name="question" rows="3"></textarea>
+        <div class="invalid-feedback">Please provide a question.</div>
       </div>
 
       <div class="form-group">
         <label for="answer">Answer:</label>
         <textarea class="form-control" id="answer" name="answer" rows="3"></textarea>
+        <div class="invalid-feedback">Please provide an answer.</div>
       </div>
 
       <div class="form-group">
@@ -107,16 +161,19 @@
         <div class="form-group">
           <label for="imgurl">Image URL:</label>
           <input type="text" class="form-control" id="imgurl" name="imgurl" readonly>
+          <div class="invalid-feedback">Choose an image by clicking on it.</div>
         </div>
 
         <div class="form-group">
           <label for="img_question">Visual question:</label>
           <textarea class="form-control" id="img_question" name="img_question" rows="3"></textarea>
+          <div class="invalid-feedback">Please provide a visual question or check above to skip.</div>
         </div>
 
         <div class="form-group">
           <label for="img_answer">Visual answer:</label>
           <textarea class="form-control" id="img_answer" name="img_answer" rows="3"></textarea>
+          <div class="invalid-feedback">Please provide a visual answer or check above to skip.</div>
         </div>
       </div>
     </form>
