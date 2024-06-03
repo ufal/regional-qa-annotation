@@ -34,7 +34,7 @@
       });
 
       //hide image controls when "Do not include visual Q&A" is checked
-      $('#enable-img').change(function() {
+      $('#disable-img').change(function() {
 	  if(this.checked) {
 	      $('#image-controls').hide();
 	  } else {
@@ -83,43 +83,42 @@
       <input type="hidden" id="wiki_lang" name="wiki_lang" value="{{wiki_lang}}">
 
       <div class="form-group">
-	<label for="question">Question:</label>
-	<textarea class="form-control" id="question" name="question" rows="3"></textarea>
+        <label for="question">Question:</label>
+        <textarea class="form-control" id="question" name="question" rows="3"></textarea>
       </div>
 
       <div class="form-group">
-	<label for="answer">Answer:</label>
-	<textarea class="form-control" id="answer" name="answer" rows="3"></textarea>
+        <label for="answer">Answer:</label>
+        <textarea class="form-control" id="answer" name="answer" rows="3"></textarea>
       </div>
 
       <div class="form-group">
-	<button type="submit" class="btn btn-light" name="skip">Skip</button>
-	<button type="submit" class="btn btn-primary">Submit</button>
+        <button type="submit" class="btn btn-light" name="skip">Skip</button>
+        <button type="submit" class="btn btn-primary">Submit</button>
       </div>
 
       <!--check box to enable image part-->
       <div class="form-check">
-	<input class="form-check-input" type="checkbox" value="" id="enable-img">
-	<label class="form-check-label" for="enable-img">Do not include visual Q&amp;A</label>
+        <input class="form-check-input" type="checkbox" value="" id="disable_img" name="disable_img">
+        <label class="form-check-label" for="disable_img">Do not include visual Q&amp;A</label>
       </div>
 
       <div id="image-controls">
-	<div class="form-group">
-	  <label for="imgurl">Image URL:</label>
-	  <input type="text" class="form-control" id="imgurl" name="imgurl" readonly>
-	</div>
+        <div class="form-group">
+          <label for="imgurl">Image URL:</label>
+          <input type="text" class="form-control" id="imgurl" name="imgurl" readonly>
+        </div>
 
-	<div class="form-group">
-	  <label for="question">Visual question:</label>
-	  <textarea class="form-control" id="img-question" name="question" rows="3"></textarea>
-	</div>
+        <div class="form-group">
+          <label for="img_question">Visual question:</label>
+          <textarea class="form-control" id="img_question" name="img_question" rows="3"></textarea>
+        </div>
 
-	<div class="form-group">
-	  <label for="answer">Visual answer:</label>
-	  <textarea class="form-control" id="img-answer" name="answer" rows="3"></textarea>
-	</div>
+        <div class="form-group">
+          <label for="img_answer">Visual answer:</label>
+          <textarea class="form-control" id="img_answer" name="img_answer" rows="3"></textarea>
+        </div>
       </div>
-
     </form>
   </nav>
 

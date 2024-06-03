@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-
-import argparse
-import requests
 import hashlib
+import jsonlines
+import requests
+from flask import Flask, render_template, request, redirect, url_for
+from functools import wraps
 
 from app.config import load_user_config
+from app.annotation import Annotation
 
-from flask import Flask, render_template, request, redirect, url_for
 app = Flask(__name__)
 
 
@@ -15,63 +16,45 @@ def get_random_article(lng):
     response = requests.get(url)
     return response.json().get("title")
 
+def logged_in(f):
+    @wraps(f)
+    def fun(*args, **kwargs):
+        if request.cookies.get("username") is not None:
+            return f(*args, **kwargs)
+        else:
+            return redirect(url_for("login"))
+    return fun
+
 
 @app.route("/")
+@logged_in
 def index():
     username = request.cookies.get("username")
-    if username is not None:
-        random_title = get_random_article(users[username]["lang"])
-        return redirect(url_for("annotate_wiki", wiki_title=random_title))
-
-    else:
-        return redirect(url_for("login"))
+    random_title = get_random_article(users[username]["lang"])
+    return redirect(url_for("annotate_wiki", wiki_title=random_title))
 
 
 @app.route("/annotate/<string:wiki_title>")
+@logged_in
 def annotate_wiki(wiki_title):
     username = request.cookies.get("username")
-    if username is None:
-        return redirect(url_for("login"))
-
-    return render_template("annotate.html",
-                           username=username,
-                           wiki_lang=users[username]["lang"],
-                           wiki_title=wiki_title,
-                           question="",
-                           answer="")
+    return render_template(
+        "annotate.html",
+        username=username,
+        wiki_lang=users[username]["lang"],
+        wiki_title=wiki_title,
+        question="",
+        answer="")
 
 
 @app.route("/annotate", methods=["POST"])
+@logged_in
 def annotate():
     username = request.cookies.get("username")
-    if username is None:
-        return redirect(url_for("login"))
 
-    if "skip" in request.form:
-        # redirect to random article
-        random_title = get_random_article(users[username]["lang"])
-        return redirect(url_for("annotate_wiki", wiki_title=random_title))
-
-    wiki_title = request.form["wiki_title"]
-    wiki_lang = request.form["wiki_lang"]
-    question = request.form["question"].replace("\n", " ").strip()
-    answer = request.form["answer"].replace("\n", " ").strip()
-
-    contains_image_info = request.form.get("imgurl") is None
-    if contains_image_info:
-        image_url = request.form["imgurl"].strip()
-        image_question = request.form["img-question"].replace("\n", " ").strip()
-        image_answer = request.form["img-answer"].replace("\n", " ").strip()
-    else:
-        image_url = "null"
-        image_question = "null"
-        image_answer = "null"
-
-    with open(users[username]["logfile"], "a") as f:
-        f.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
-            wiki_lang, wiki_title,
-            question.replace('\t', ' '), answer.replace('\t', ' '),
-            image_url, image_question.replace('\t', ' '), image_answer.replace('\t', ' ')))
+    anot = Annotation(request.form)
+    with jsonlines.open(users[username]["logfile"], "a") as writer:
+        writer.write(anot.to_json_dict())
 
     # redirect to random article
     random_title = get_random_article(users[username]["lang"])
@@ -79,6 +62,7 @@ def annotate():
 
 
 @app.route("/wiki/<string:wiki_title>")
+@logged_in
 def wiki(wiki_title):
     # we are including texts from wiki - we can intercept this route to switch
     # articles
