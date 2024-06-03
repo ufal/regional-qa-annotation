@@ -25,17 +25,19 @@ $(document).ready(function(){
       // treat every link inside #article whose href begins with /wiki/ as the skip button, but preserve the final URL
       // so first prevent default, then change the form action to /linkclick, and finally submit the form.
       $("#article").find('a').each(function() {
-        if ($(this).attr('href').startsWith('/wiki/')) {
+
+        var href = $(this).attr('href');
+        if (href != undefined && href.startsWith('/wiki/')) {
           // make exception if this "a" contains an image
           if ($(this).find('img').length > 0) {
             return;
           }
+
           $(this).click(function(e) {
             e.preventDefault();
 
-            var final_url = $(this).attr('href');
             $('form').attr('action', '/linkclick');
-            $('form').append('<input type="hidden" name="final_url" value="' + final_url + '">');
+            $('form').append('<input type="hidden" name="final_url" value="' + href + '">');
 
             // set the active element name to skip so that the form validation does not run
             $('button[name="skip"]').click();
