@@ -21,6 +21,27 @@ $(document).ready(function(){
 
       $('#title').html(title);
       $('#article').html(content);
+
+      // treat every link inside #article whose href begins with /wiki/ as the skip button, but preserve the final URL
+      // so first prevent default, then change the form action to /linkclick, and finally submit the form.
+      $("#article").find('a').each(function() {
+        if ($(this).attr('href').startsWith('/wiki/')) {
+          $(this).click(function(e) {
+            e.preventDefault();
+
+            var final_url = $(this).attr('href');
+            $('form').attr('action', '/linkclick');
+            $('form').append('<input type="hidden" name="final_url" value="' + final_url + '">');
+
+            // set the active element name to skip so that the form validation does not run
+            $('button[name="skip"]').click();
+          });
+        }
+        else {
+          // remove the link
+          $(this).replaceWith($(this).html());
+        }
+      })
     },
     error: function (errorMessage) {}
   });
@@ -47,6 +68,12 @@ $(document).ready(function(){
     // we only want to validate if the submit button was pressed
     var button = $(document.activeElement).attr('name');
     if (button == 'skip') {
+      return;
+    }
+
+    // if the form action is /linkclick, we don't want to validate
+    var action = $('form').attr('action');
+    if (action == '/linkclick') {
       return;
     }
 

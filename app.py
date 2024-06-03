@@ -63,16 +63,26 @@ def annotate_random():
         question="",
         answer="")
 
+@app.route("/linkclick", methods=["POST"])
+@logged_in
+def linkclick():
+    username = request.cookies.get("username")
+    anot = Annotation(request.form, linkclick=True)
+    with jsonlines.open(users[username]["logfile"], "a") as writer:
+        writer.write(anot.to_json_dict())
+
+    # retrieve the link target
+    target = request.form["final_url"]
+    return redirect(target)
+
 
 @app.route("/annotate", methods=["POST"])
 @logged_in
 def annotate():
     username = request.cookies.get("username")
-
     anot = Annotation(request.form)
     with jsonlines.open(users[username]["logfile"], "a") as writer:
         writer.write(anot.to_json_dict())
-
     return redirect(url_for("annotate_random"))
 
 

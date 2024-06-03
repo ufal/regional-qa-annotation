@@ -18,13 +18,16 @@ class Annotation:
   time_saved: float
 
   skipped: bool
+  skipped_reason: str
   random_page: bool
 
-  def __init__(self, rf: dict):
-    print(rf)
+  def __init__(self, rf: dict, linkclick=False):
     self.wiki_title = rf["wiki_title"]
     self.wiki_lang = rf["wiki_lang"]
     self.skipped = "skip" in rf
+    self.skipped_reason = None
+    if self.skipped:
+      self.skipped_reason = "linkclick" if linkclick else "skip"
     self.time_saved = time.time()
     self.random_page = rf["randomness"] == "True"
     self.time_loaded = rf["timestamp"]
@@ -60,6 +63,9 @@ class Annotation:
         d["img_url"] = self.img_url
         d["img_question"] = self.img_question
         d["img_answer"] = self.img_answer
+
+    else:
+      d["skipped_reason"] = self.skipped_reason
 
     return d
 
