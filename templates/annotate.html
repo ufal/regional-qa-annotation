@@ -26,6 +26,10 @@ $(document).ready(function(){
       // so first prevent default, then change the form action to /linkclick, and finally submit the form.
       $("#article").find('a').each(function() {
         if ($(this).attr('href').startsWith('/wiki/')) {
+          // make exception if this "a" contains an image
+          if ($(this).find('img').length > 0) {
+            return;
+          }
           $(this).click(function(e) {
             e.preventDefault();
 
