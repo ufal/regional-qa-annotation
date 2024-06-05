@@ -3,20 +3,23 @@
 
 {% block content %}
 
-<p class="lead">Hello {{username}}! You have completed {{annotations|length}} annotations.</p>
+<p class="lead">Hello {{username}}! You have completed {{numvalid}} annotations.</p>
 
 <!-- show annotations in bootstrap list group. each annotation has wiki_title, timestamp and wiki_lang -->
 <ul class="list-group">
   {% for annotation in annotations %}
   <li class="list-group-item justify-content-between d-flex align-items-center"> 
-    <a href="/annotate/{{annotation.wiki_title}}">{{annotation.wiki_title}}</a> 
-    
+    <div>
+        <a href="/annotate/{{annotation.wiki_title}}" class="me-3">{{annotation.wiki_title}}</a>
+        <span class="fw-light small me-3">{{annotation.question}}</span>
+        <span class="fw-light small">{{annotation.answer}}</span>
+    </div>
     <div>
     {% if annotation.skipped %}
-    <span class="small fst-italic fw-light">Skipped</span>
+    <div><span class="small fst-italic fw-light d-none">Skipped</span> <i class="bi-skip-forward-fill text-warning" title="skipped"></i></div>
     {% else %}
     <!-- show time_saved, but it is timestamp so first convert to datetime -->
-    <span class="small">{{annotation.time_saved|format_datetime }}</span>
+    <span class="small">{{annotation.time_saved|format_datetime }}</span> <span class="bi-check-circle-fill text-success" title="completed"></span>
     {% endif %}
     </div>
     

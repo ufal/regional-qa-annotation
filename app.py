@@ -35,13 +35,19 @@ def logged_in(f):
 @logged_in
 def index():
     username = request.cookies.get("username")
-    annotations = []
+    annotations = {}
+    numvalid = 0
     with jsonlines.open(users[username]["logfile"]) as reader:
         for obj in reader:
-            annotations.append(Annotation(obj))
-
-
-    return render_template("dashboard.html", username=username, annotations=list(reversed(annotations)))
+            a = Annotation(obj)
+            if not a.skipped and a.wiki_title not in annotations:
+                numvalid += 1
+            annotations[a.wiki_title] = Annotation(obj)
+            
+    return render_template("dashboard.html", 
+                           username=username,
+                           annotations=list(annotations.values()),
+                           numvalid=numvalid)
 
 
 @app.route("/annotate/<string:wiki_title>")
