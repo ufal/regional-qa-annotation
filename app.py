@@ -12,6 +12,10 @@ from app.annotation import Annotation
 app = Flask(__name__)
 
 
+@app.template_filter()
+def format_datetime(timestamp):
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp))
+
 def get_random_article(lng):
     url = f"https://{lng}.wikipedia.org/api/rest_v1/page/random/summary"
     response = requests.get(url)
@@ -30,8 +34,14 @@ def logged_in(f):
 @app.route("/")
 @logged_in
 def index():
-    # todo here might be some sort of dashboard
-    return redirect(url_for("annotate_random"))
+    username = request.cookies.get("username")
+    annotations = []
+    with jsonlines.open(users[username]["logfile"]) as reader:
+        for obj in reader:
+            annotations.append(Annotation(obj))
+
+
+    return render_template("dashboard.html", username=username, annotations=list(reversed(annotations)))
 
 
 @app.route("/annotate/<string:wiki_title>")
@@ -67,7 +77,7 @@ def annotate_random():
 @logged_in
 def linkclick():
     username = request.cookies.get("username")
-    anot = Annotation(request.form, linkclick=True)
+    anot = Annotation.from_request_form(request.form, linkclick=True)
     with jsonlines.open(users[username]["logfile"], "a") as writer:
         writer.write(anot.to_json_dict())
 
@@ -80,7 +90,7 @@ def linkclick():
 @logged_in
 def annotate():
     username = request.cookies.get("username")
-    anot = Annotation(request.form)
+    anot = Annotation.from_request_form(request.form)
     with jsonlines.open(users[username]["logfile"], "a") as writer:
         writer.write(anot.to_json_dict())
     return redirect(url_for("annotate_random"))
@@ -107,7 +117,7 @@ def login():
             return response
         else:
             return render_template(
-                "index.html", error="Invalid username or password")
+                "login.html", error="Invalid username or password")
 
     return render_template("login.html")
 

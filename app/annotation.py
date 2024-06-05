@@ -21,27 +21,52 @@ class Annotation:
   skipped_reason: str
   random_page: bool
 
-  def __init__(self, rf: dict, linkclick=False):
-    self.wiki_title = rf["wiki_title"]
-    self.wiki_lang = rf["wiki_lang"]
-    self.skipped = "skip" in rf
-    self.skipped_reason = None
-    if self.skipped:
-      self.skipped_reason = "linkclick" if linkclick else "skip"
-    self.time_saved = time.time()
-    self.random_page = rf["randomness"] == "True"
-    self.time_loaded = rf["timestamp"]
+  @staticmethod
+  def from_request_form(rf: dict, linkclick=False):
+    d = {}
 
-    self.img_skipped = "disable_img" in rf
+    d["wiki_lang"] = rf["wiki_lang"]
+    d["wiki_title"] = rf["wiki_title"]
+    d["random_page"] = rf["randomness"] == "True"
+    d["time_saved"] = time.time()
+    d["time_loaded"] = float(rf["timestamp"])
 
+    d["skipped"] = "skip" in rf
+
+    if d["skipped"]:
+      d["skipped_reason"] = "linkclick" if linkclick else "skip"
+    else:
+      d["question"] = rf["question"]
+      d["answer"] = rf["answer"]
+
+      d["img_skipped"] = "disable_img" in rf
+
+      if not d["img_skipped"]:
+        d["img_url"] = rf["img_url"]
+        d["img_question"] = rf["img_question"]
+        d["img_answer"] = rf["img_answer"]
+
+    return Annotation(d)
+
+  def __init__(self, d: dict):
+    self.wiki_lang = d["wiki_lang"]
+    self.wiki_title = d["wiki_title"]
+    self.skipped = d["skipped"]    
+    self.time_loaded = d["time_loaded"]
+    self.time_saved = d["time_saved"]
+    self.random_page = d["random_page"]
+    
     if not self.skipped:
-      self.question = rf["question"]
-      self.answer = rf["answer"]
+      self.question = d["question"]
+      self.answer = d["answer"]
 
+      self.img_skipped = d["img_skipped"]
       if not self.img_skipped:
-        self.img_url = rf["imgurl"]
-        self.img_question = rf["img_question"]
-        self.img_answer = rf["img_answer"]
+        self.img_url = d["img_url"]
+        self.img_question = d["img_question"]
+        self.img_answer = d["img_answer"]
+    else:
+      self.skipped_reason = d["skipped_reason"]
 
 
   def to_json_dict(self) -> dict:
@@ -68,4 +93,3 @@ class Annotation:
       d["skipped_reason"] = self.skipped_reason
 
     return d
-

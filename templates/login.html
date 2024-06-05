@@ -4,6 +4,14 @@
 {% extends "index.html" %}
 
 {% block content %}
+
+<!-- error block for displaying errors. using bootstrap classes and it is nice -->
+{% if error %}
+	<div class="alert alert-danger" role="alert">
+		{{ error }}
+	</div>
+{% endif %}
+
 		<h2>Login</h2>
 		<form method="POST">
 				<input type="text" name="username" placeholder="Username" required>

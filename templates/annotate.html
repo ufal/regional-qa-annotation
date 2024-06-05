@@ -55,7 +55,7 @@ $(document).ready(function(){
   $('#article').on('click', 'img', function(e){
     e.preventDefault();
     var img_url = $(this).attr('src');
-    $('#imgurl').val(img_url);
+    $('#img_url').val(img_url);
   });
 
   //hide image controls when "Do not include visual Q&A" is checked
@@ -85,7 +85,7 @@ $(document).ready(function(){
 
     var question = $('#question').val();
     var answer = $('#answer').val();
-    var img_url = $('#imgurl').val();
+    var img_url = $('#img_url').val();
     var img_question = $('#img_question').val();
     var img_answer = $('#img_answer').val();
 
@@ -105,10 +105,10 @@ $(document).ready(function(){
 
     if ($('#disable_img').prop('checked') == false) {
       if(img_url == "") {
-        $('#imgurl').addClass('is-invalid');
+        $('#img_url').addClass('is-invalid');
         e.preventDefault();
       } else {
-        $('#imgurl').removeClass('is-invalid');
+        $('#img_url').removeClass('is-invalid');
       }
 
       if(img_question == "") {
@@ -194,8 +194,8 @@ $(document).ready(function(){
 
       <div id="image-controls">
         <div class="form-group">
-          <label for="imgurl">Image URL:</label>
-          <input type="text" class="form-control" id="imgurl" name="imgurl" readonly>
+          <label for="img_url">Image URL:</label>
+          <input type="text" class="form-control" id="img_url" name="img_url" readonly>
           <div class="invalid-feedback">Choose an image by clicking on it.</div>
         </div>
 
