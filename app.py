@@ -12,9 +12,21 @@ from app.annotation import Annotation
 app = Flask(__name__)
 
 
+def get_user_annotations(username):
+    annotations = {}
+    with jsonlines.open(users[username]["logfile"]) as reader:
+        for obj in reader:
+            a = Annotation(obj)
+            if a.wiki_title in annotations and a.time_saved > annotations[a.wiki_title].time_saved:
+                annotations[a.wiki_title] = Annotation(obj)
+            else:
+                annotations[a.wiki_title] = Annotation(obj)
+
+    return annotations
+
 @app.template_filter()
 def format_datetime(timestamp):
-    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp))
+    return time.strftime("x%d. x%m. %Y, %H:%M:%S", time.localtime(timestamp)).replace("x0", "x").replace("x", "")
 
 def get_random_article(lng):
     url = f"https://{lng}.wikipedia.org/api/rest_v1/page/random/summary"
@@ -35,18 +47,12 @@ def logged_in(f):
 @logged_in
 def index():
     username = request.cookies.get("username")
-    annotations = {}
-    numvalid = 0
-    with jsonlines.open(users[username]["logfile"]) as reader:
-        for obj in reader:
-            a = Annotation(obj)
-            if not a.skipped and a.wiki_title not in annotations:
-                numvalid += 1
-            annotations[a.wiki_title] = Annotation(obj)
-            
-    return render_template("dashboard.html", 
+    annotations = get_user_annotations(username)
+    numvalid = len([a for a in annotations.values() if not a.skipped])
+
+    return render_template("dashboard.html",
                            username=username,
-                           annotations=list(annotations.values()),
+                           annotations=list(sorted(annotations.values(), key=lambda x: x.time_saved, reverse=True)),
                            numvalid=numvalid)
 
 

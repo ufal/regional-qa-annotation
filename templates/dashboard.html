@@ -1,31 +1,63 @@
 {% extends "index.html" %}
 
-
 {% block content %}
 
 <p class="lead">Hello {{username}}! You have completed {{numvalid}} annotations.</p>
 
 <!-- show annotations in bootstrap list group. each annotation has wiki_title, timestamp and wiki_lang -->
-<ul class="list-group">
+<ul class="list-group mb-5">
   {% for annotation in annotations %}
-  <li class="list-group-item justify-content-between d-flex align-items-center"> 
+  {% if not annotation.skipped %}
+  <li class="list-group-item justify-content-between d-flex align-items-center">
     <div>
         <a href="/annotate/{{annotation.wiki_title}}" class="me-3">{{annotation.wiki_title}}</a>
         <span class="fw-light small me-3">{{annotation.question}}</span>
         <span class="fw-light small">{{annotation.answer}}</span>
     </div>
     <div>
-    {% if annotation.skipped %}
-    <div><span class="small fst-italic fw-light d-none">Skipped</span> <i class="bi-skip-forward-fill text-warning" title="skipped"></i></div>
+
+    <div class="d-flex">
+    {% if not annotation.img_skipped %}
+    <span class="bi-image text-success mx-1" title="contains image info"></span>
     {% else %}
-    <!-- show time_saved, but it is timestamp so first convert to datetime -->
-    <span class="small">{{annotation.time_saved|format_datetime }}</span> <span class="bi-check-circle-fill text-success" title="completed"></span>
+    <!--    <span class="bi-image text-danger" title="no image info"></span> -->
     {% endif %}
+
+    <!-- show time_saved, but it is timestamp so first convert to datetime -->
+    <span class="small mx-1">{{annotation.time_saved|format_datetime }} </span>
+    <div class="small mx-1" style="min-width: 4em;"> ({{annotation.time_elapsed_seconds}} s) </div>
+    <span class="bi-check-circle-fill text-success mx-2" title="completed"></span>
+
     </div>
-    
+  {% endif %}
+
   {%  endfor %}
 </ul>
-      
+
+
+<p class="fw-light mb-3 mt-5">Recently skipped annotations:</p>
+
+<!-- show annotations in bootstrap list group. each annotation has wiki_title, timestamp and wiki_lang -->
+<ul class="list-group mb-5" id="skipped-list">
+  {% for annotation in annotations %}
+  {% if annotation.skipped %}
+  <li class="list-group-item justify-content-between d-flex align-items-center">
+    <div>
+        <a href="/annotate/{{annotation.wiki_title}}" class="me-3">{{annotation.wiki_title}}</a>
+        <span class="fw-light small me-3">{{annotation.question}}</span>
+        <span class="fw-light small">{{annotation.answer}}</span>
+    </div>
+    <div class="d-flex">
+    <!-- show time_saved, but it is timestamp so first convert to datetime -->
+    <span class="small mx-1">{{annotation.time_saved|format_datetime }} </span>
+    <div class="small mx-1" style="min-width: 4em;"> ({{annotation.time_elapsed_seconds}} s) </div>
+    <span class="bi-check-circle-fill text-success mx-2" title="completed"></span>
+
+    </div>
+  {% endif %}
+
+  {%  endfor %}
+</ul>
 
 
 {% endblock %}

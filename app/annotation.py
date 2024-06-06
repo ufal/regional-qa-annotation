@@ -51,11 +51,11 @@ class Annotation:
   def __init__(self, d: dict):
     self.wiki_lang = d["wiki_lang"]
     self.wiki_title = d["wiki_title"]
-    self.skipped = d["skipped"]    
-    self.time_loaded = d["time_loaded"]
-    self.time_saved = d["time_saved"]
+    self.skipped = d["skipped"]
+    self.time_loaded = float(d["time_loaded"])
+    self.time_saved = float(d["time_saved"])
     self.random_page = d["random_page"]
-    
+
     if not self.skipped:
       self.question = d["question"]
       self.answer = d["answer"]
@@ -68,6 +68,9 @@ class Annotation:
     else:
       self.skipped_reason = d["skipped_reason"]
 
+  @property
+  def time_elapsed_seconds(self) -> int:
+    return int(self.time_saved - self.time_loaded)
 
   def to_json_dict(self) -> dict:
     d = {
