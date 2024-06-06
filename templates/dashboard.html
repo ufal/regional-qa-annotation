@@ -2,6 +2,7 @@
 
 {% block content %}
 
+<div class="container">
 <p class="lead">Hello {{username}}! You have completed {{numvalid}} annotations.</p>
 
 <!-- show annotations in bootstrap list group. each annotation has wiki_title, timestamp and wiki_lang -->
@@ -59,5 +60,5 @@
   {%  endfor %}
 </ul>
 
-
+</div>
 {% endblock %}

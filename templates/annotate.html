@@ -160,8 +160,8 @@ $(document).ready(function(){
   /* } */
 </style>
 
-<div class="container-fluid p-0 d-flex h-100">
-  <nav class="d-flex flex-column flex-shrink-0 p-3 position-sticky sticky-top h-50" style="width: 320px;">
+<div class="container-fluid p-3 d-flex h-100">
+  <div class="d-flex flex-column flex-shrink-0 p-3 position-sticky sticky-top h-50 container" style="width: 640px;">
     <form action="/annotate" method="post" novalidate>
       <!--hidden fields for wiki title and language -->
       <input type="hidden" id="wiki_title" name="wiki_title" value="{{data.wiki_title}}">
@@ -169,32 +169,34 @@ $(document).ready(function(){
       <input type="hidden" id="randomness" name="randomness" value="{{data.random_page}}">
       <input type="hidden" id="timestamp" name="timestamp" value="{{data.time_loaded}}">
 
-      <div class="form-group my-3">
-        <label for="question">Question (source language):</label>
-        <textarea class="form-control" id="question" name="question" rows="3">{{data.question}}</textarea>
-        <div class="invalid-feedback">Please provide a question.</div>
+      <div class="row">
+        <div class="form-group my-3 col">
+          <label for="question">Question (source language):</label>
+          <textarea class="form-control" id="question" name="question" rows="3">{{data.question}}</textarea>
+          <div class="invalid-feedback">Please provide a question.</div>
+        </div>
+
+        <div class="form-group my-3 col">
+          <label for="question">Question (English):</label>
+          <textarea class="form-control" id="question_en" name="question_en" rows="3">{{data.question_en}}</textarea>
+          <div class="invalid-feedback">Please provide the English translation of the question.</div>
+        </div>
       </div>
 
-      <div class="form-group my-3">
-        <label for="question">Question (English):</label>
-        <textarea class="form-control" id="question_en" name="question_en" rows="3">{{data.question_en}}</textarea>
-        <div class="invalid-feedback">Please provide the English translation of the question.</div>
+      <div class="row">
+        <div class="form-group my-3 col">
+          <label for="answer">Answer (source language):</label>
+          <textarea class="form-control" id="answer" name="answer" rows="3">{{data.answer}}</textarea>
+          <div class="invalid-feedback">Please provide an answer.</div>
+        </div>
+
+        <div class="form-group my-3 col">
+          <label for="answer_en">Answer (English):</label>
+          <textarea class="form-control" id="answer_en" name="answer_en" rows="3">{{data.answer_en}}</textarea>
+          <div class="invalid-feedback">Please provide the English translation of the answer.</div>
+        </div>
       </div>
 
-      <div class="form-group my-3">
-        <label for="answer">Answer (source language):</label>
-        <textarea class="form-control" id="answer" name="answer" rows="3">{{data.answer}}</textarea>
-        <div class="invalid-feedback">Please provide an answer.</div>
-      </div>
-
-      <div class="form-group my-3">
-        <label for="answer_en">Answer (English):</label>
-        <textarea class="form-control" id="answer_en" name="answer_en" rows="3">{{data.answer_en}}</textarea>
-        <div class="invalid-feedback">Please provide the English translation of the answer.</div>
-      </div>
-
-
-      <!--check box to enable image part-->
       <div class="form-check my-3">
         <input class="form-check-input" type="checkbox" value="" id="disable_img" name="disable_img" {% if data.img_skipped %} checked {% endif %}>
         <label class="form-check-label" for="disable_img">Do not include visual Q&amp;A</label>
@@ -207,30 +209,31 @@ $(document).ready(function(){
           <div class="invalid-feedback">Choose an image by clicking on it.</div>
         </div>
 
-        <div class="form-group my-3">
-          <label for="img_question">Visual question:</label>
-          <textarea class="form-control" id="img_question" name="img_question" rows="3">{% if not data.img_skipped %}{{data.img_question}}{% endif %}</textarea>
-          <div class="invalid-feedback">Please provide a visual question or check above to skip.</div>
+        <div class="row">
+          <div class="form-group my-3 col">
+            <label for="img_question">Visual question:</label>
+            <textarea class="form-control" id="img_question" name="img_question" rows="3">{% if not data.img_skipped %}{{data.img_question}}{% endif %}</textarea>
+            <div class="invalid-feedback">Please provide a visual question or check above to skip.</div>
+          </div>
+          <div class="form-group my-3 col">
+            <label for="img_question_en">Visual question:</label>
+            <textarea class="form-control" id="img_question_en" name="img_question_en" rows="3">{% if not data.img_skipped %}{{data.img_question_en}}{% endif %}</textarea>
+            <div class="invalid-feedback">Please provide the English translation of the visual question.</div>
+          </div>
         </div>
 
+        <div class="row">
+          <div class="form-group my-3 col">
+            <label for="img_answer">Visual answer:</label>
+            <textarea class="form-control" id="img_answer" name="img_answer" rows="3">{% if not data.img_skipped %}{{data.img_answer}}{% endif %}</textarea>
+            <div class="invalid-feedback">Please provide a visual answer or check above to skip.</div>
+          </div>
 
-        <div class="form-group my-3">
-          <label for="img_question_en">Visual question:</label>
-          <textarea class="form-control" id="img_question_en" name="img_question_en" rows="3">{% if not data.img_skipped %}{{data.img_question_en}}{% endif %}</textarea>
-          <div class="invalid-feedback">Please provide the English translation of the visual question.</div>
-        </div>
-
-
-        <div class="form-group my-3">
-          <label for="img_answer">Visual answer:</label>
-          <textarea class="form-control" id="img_answer" name="img_answer" rows="3">{% if not data.img_skipped %}{{data.img_answer}}{% endif %}</textarea>
-          <div class="invalid-feedback">Please provide a visual answer or check above to skip.</div>
-        </div>
-
-        <div class="form-group my-3">
-          <label for="img_answer_en">Visual answer (English):</label>
-          <textarea class="form-control" id="img_answer_en" name="img_answer_en" rows="3">{% if not data.img_skipped %}{{data.img_answer_en}}{% endif %}</textarea>
-          <div class="invalid-feedback">Please provide the English translation of the visual answer.</div>
+          <div class="form-group my-3 col">
+            <label for="img_answer_en">Visual answer (English):</label>
+            <textarea class="form-control" id="img_answer_en" name="img_answer_en" rows="3">{% if not data.img_skipped %}{{data.img_answer_en}}{% endif %}</textarea>
+            <div class="invalid-feedback">Please provide the English translation of the visual answer.</div>
+          </div>
         </div>
 
       </div>
@@ -245,14 +248,14 @@ $(document).ready(function(){
         <button type="submit" class="btn btn-primary">Submit</button>
       </div>
     </form>
-  </nav>
+  </div>
 
-  <main role="main" class="flex-fill">
+  <div role="main" class="flex-fill">
     <div class="pt-3 pb-2 mb-3 border-bottom">
       <h1 id="title" class="h2"></h1>
     </div>
     <div id="article"></div>
-  </main>
+  </div>
 </div>
 
 {% endblock %}
