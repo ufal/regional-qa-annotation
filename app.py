@@ -10,7 +10,7 @@ from app.config import load_user_config
 from app.annotation import Annotation
 
 app = Flask(__name__)
-
+users = {}
 
 def get_user_annotations(username):
     annotations = {}
@@ -60,30 +60,34 @@ def index():
 @logged_in
 def annotate_wiki(wiki_title):
     username = request.cookies.get("username")
+    annotations = get_user_annotations(username)
+    existing_annotation = annotations.get(
+        wiki_title,
+        Annotation.empty_annotation(wiki_title, users[username]["lang"], False))
+    existing_annotation.time_loaded = time.time()
+
     return render_template(
         "annotate.html",
         username=username,
-        wiki_lang=users[username]["lang"],
-        wiki_title=wiki_title,
-        random_page=False,
-        timestamp=time.time(),
-        question="",
-        answer="")
+        editing=wiki_title in annotations,
+        data=existing_annotation)
 
 @app.route("/annotate", methods=["GET"])
 @logged_in
 def annotate_random():
     username = request.cookies.get("username")
     random_title = get_random_article(users[username]["lang"])
+    annotations = get_user_annotations(username)
+    existing_annotation = annotations.get(
+        random_title,
+        Annotation.empty_annotation(random_title, users[username]["lang"], True))
+    existing_annotation.time_loaded = time.time()
+
     return render_template(
         "annotate.html",
         username=username,
-        wiki_lang=users[username]["lang"],
-        wiki_title=random_title,
-        random_page=True,
-        timestamp=time.time(),
-        question="",
-        answer="")
+        editing=random_title in annotations,
+        data=existing_annotation)
 
 @app.route("/linkclick", methods=["POST"])
 @logged_in

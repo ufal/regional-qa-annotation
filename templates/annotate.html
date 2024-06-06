@@ -8,7 +8,7 @@
 $(document).ready(function(){
   $.ajax({
     type: "GET",
-    url: "https://{{wiki_lang}}.wikipedia.org/w/api.php?action=parse&format=json&prop=text&page={{wiki_title}}&callback=?",
+    url: "https://{{data.wiki_lang}}.wikipedia.org/w/api.php?action=parse&format=json&prop=text&page={{data.wiki_title}}&callback=?",
     contentType: "application/json; charset=utf-8",
     async: false,
     dataType: "json",
@@ -164,50 +164,54 @@ $(document).ready(function(){
   <nav class="d-flex flex-column flex-shrink-0 p-3 position-sticky sticky-top h-50" style="width: 320px;">
     <form action="/annotate" method="post" novalidate>
       <!--hidden fields for wiki title and language -->
-      <input type="hidden" id="wiki_title" name="wiki_title" value="{{wiki_title}}">
-      <input type="hidden" id="wiki_lang" name="wiki_lang" value="{{wiki_lang}}">
-      <input type="hidden" id="randomness" name="randomness" value="{{random_page}}">
-      <input type="hidden" id="timestamp" name="timestamp" value="{{timestamp}}">
+      <input type="hidden" id="wiki_title" name="wiki_title" value="{{data.wiki_title}}">
+      <input type="hidden" id="wiki_lang" name="wiki_lang" value="{{data.wiki_lang}}">
+      <input type="hidden" id="randomness" name="randomness" value="{{data.random_page}}">
+      <input type="hidden" id="timestamp" name="timestamp" value="{{data.time_loaded}}">
 
-      <div class="form-group">
+      <div class="form-group my-3">
         <label for="question">Question:</label>
-        <textarea class="form-control" id="question" name="question" rows="3"></textarea>
+        <textarea class="form-control" id="question" name="question" rows="3">{{data.question}}</textarea>
         <div class="invalid-feedback">Please provide a question.</div>
       </div>
 
-      <div class="form-group">
+      <div class="form-group my-3">
         <label for="answer">Answer:</label>
-        <textarea class="form-control" id="answer" name="answer" rows="3"></textarea>
+        <textarea class="form-control" id="answer" name="answer" rows="3">{{data.answer}}</textarea>
         <div class="invalid-feedback">Please provide an answer.</div>
       </div>
 
-      <div class="form-group">
-        <button type="submit" class="btn btn-light" name="skip">Skip</button>
+      <div class="form-group my-3">
+        {% if editing %}
+        <button type="submit" class="btn btn-outline-danger" name="skip">Delete</button>
+        {% else %}
+        <button type="submit" class="btn btn-outline-secondary" name="skip">Skip</button>
+        {% endif %}
         <button type="submit" class="btn btn-primary">Submit</button>
       </div>
 
       <!--check box to enable image part-->
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" value="" id="disable_img" name="disable_img">
+      <div class="form-check my-3">
+        <input class="form-check-input" type="checkbox" value="" id="disable_img" name="disable_img" {% if data.img_skipped %} checked {% endif %}>
         <label class="form-check-label" for="disable_img">Do not include visual Q&amp;A</label>
       </div>
 
       <div id="image-controls">
-        <div class="form-group">
+        <div class="form-group my-3">
           <label for="img_url">Image URL:</label>
-          <input type="text" class="form-control" id="img_url" name="img_url" readonly>
+          <input type="text" class="form-control" id="img_url" name="img_url" readonly  {% if not data.img_skipped %} value="{{data.img_url}}" {% endif %}>
           <div class="invalid-feedback">Choose an image by clicking on it.</div>
         </div>
 
-        <div class="form-group">
+        <div class="form-group my-3">
           <label for="img_question">Visual question:</label>
-          <textarea class="form-control" id="img_question" name="img_question" rows="3"></textarea>
+          <textarea class="form-control" id="img_question" name="img_question" rows="3">{% if not data.img_skipped %}{{data.img_question}}{% endif %}</textarea>
           <div class="invalid-feedback">Please provide a visual question or check above to skip.</div>
         </div>
 
-        <div class="form-group">
+        <div class="form-group my-3">
           <label for="img_answer">Visual answer:</label>
-          <textarea class="form-control" id="img_answer" name="img_answer" rows="3"></textarea>
+          <textarea class="form-control" id="img_answer" name="img_answer" rows="3">{% if not data.img_skipped %}{{data.img_answer}}{% endif %}</textarea>
           <div class="invalid-feedback">Please provide a visual answer or check above to skip.</div>
         </div>
       </div>

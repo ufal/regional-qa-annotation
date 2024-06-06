@@ -22,6 +22,24 @@ class Annotation:
   random_page: bool
 
   @staticmethod
+  def empty_annotation(wiki_title: str, wiki_lang: str, random: bool):
+    return Annotation({
+      "wiki_lang": wiki_lang,
+      "wiki_title": wiki_title,
+      "skipped": False,
+      "question": "",
+      "answer": "",
+      "img_skipped": False,
+      "img_url": "",
+      "img_question": "",
+      "img_answer": "",
+      "skipped_reason": "",
+      "time_loaded": time.time(),
+      "time_saved": time.time(),
+      "random_page": random
+    })
+
+  @staticmethod
   def from_request_form(rf: dict, linkclick=False):
     d = {}
 
