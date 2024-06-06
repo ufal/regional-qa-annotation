@@ -170,25 +170,29 @@ $(document).ready(function(){
       <input type="hidden" id="timestamp" name="timestamp" value="{{data.time_loaded}}">
 
       <div class="form-group my-3">
-        <label for="question">Question:</label>
+        <label for="question">Question (source language):</label>
         <textarea class="form-control" id="question" name="question" rows="3">{{data.question}}</textarea>
         <div class="invalid-feedback">Please provide a question.</div>
       </div>
 
       <div class="form-group my-3">
-        <label for="answer">Answer:</label>
+        <label for="question">Question (English):</label>
+        <textarea class="form-control" id="question_en" name="question_en" rows="3">{{data.question_en}}</textarea>
+        <div class="invalid-feedback">Please provide the English translation of the question.</div>
+      </div>
+
+      <div class="form-group my-3">
+        <label for="answer">Answer (source language):</label>
         <textarea class="form-control" id="answer" name="answer" rows="3">{{data.answer}}</textarea>
         <div class="invalid-feedback">Please provide an answer.</div>
       </div>
 
       <div class="form-group my-3">
-        {% if editing %}
-        <button type="submit" class="btn btn-outline-danger" name="skip">Delete</button>
-        {% else %}
-        <button type="submit" class="btn btn-outline-secondary" name="skip">Skip</button>
-        {% endif %}
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <label for="answer_en">Answer (English):</label>
+        <textarea class="form-control" id="answer_en" name="answer_en" rows="3">{{data.answer_en}}</textarea>
+        <div class="invalid-feedback">Please provide the English translation of the answer.</div>
       </div>
+
 
       <!--check box to enable image part-->
       <div class="form-check my-3">
@@ -209,11 +213,36 @@ $(document).ready(function(){
           <div class="invalid-feedback">Please provide a visual question or check above to skip.</div>
         </div>
 
+
+        <div class="form-group my-3">
+          <label for="img_question_en">Visual question:</label>
+          <textarea class="form-control" id="img_question_en" name="img_question_en" rows="3">{% if not data.img_skipped %}{{data.img_question_en}}{% endif %}</textarea>
+          <div class="invalid-feedback">Please provide the English translation of the visual question.</div>
+        </div>
+
+
         <div class="form-group my-3">
           <label for="img_answer">Visual answer:</label>
           <textarea class="form-control" id="img_answer" name="img_answer" rows="3">{% if not data.img_skipped %}{{data.img_answer}}{% endif %}</textarea>
           <div class="invalid-feedback">Please provide a visual answer or check above to skip.</div>
         </div>
+
+        <div class="form-group my-3">
+          <label for="img_answer_en">Visual answer (English):</label>
+          <textarea class="form-control" id="img_answer_en" name="img_answer_en" rows="3">{% if not data.img_skipped %}{{data.img_answer_en}}{% endif %}</textarea>
+          <div class="invalid-feedback">Please provide the English translation of the visual answer.</div>
+        </div>
+
+      </div>
+
+
+      <div class="form-group my-3 text-end">
+        {% if editing %}
+        <button type="submit" class="btn btn-outline-danger" name="skip">Delete</button>
+        {% else %}
+        <button type="submit" class="btn btn-outline-secondary" name="skip">Skip</button>
+        {% endif %}
+        <button type="submit" class="btn btn-primary">Submit</button>
       </div>
     </form>
   </nav>

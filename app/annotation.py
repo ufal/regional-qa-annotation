@@ -7,12 +7,16 @@ class Annotation:
   wiki_title: str
 
   question: str
+  question_en: str
   answer: str
+  answer_en: str
 
   img_skipped: bool
   img_url: str
   img_question: str
+  img_question_en: str
   img_answer: str
+  img_answer_en: str
 
   time_loaded: float
   time_saved: float
@@ -28,11 +32,15 @@ class Annotation:
       "wiki_title": wiki_title,
       "skipped": False,
       "question": "",
+      "question_en": "",
       "answer": "",
+      "answer_en": "",
       "img_skipped": False,
       "img_url": "",
       "img_question": "",
+      "img_question_en": "",
       "img_answer": "",
+      "img_answer_en": "",
       "skipped_reason": "",
       "time_loaded": time.time(),
       "time_saved": time.time(),
@@ -55,14 +63,18 @@ class Annotation:
       d["skipped_reason"] = "linkclick" if linkclick else "skip"
     else:
       d["question"] = rf["question"]
+      d["question_en"] = rf["question_en"]
       d["answer"] = rf["answer"]
+      d["answer_en"] = rf["answer_en"]
 
       d["img_skipped"] = "disable_img" in rf
 
       if not d["img_skipped"]:
         d["img_url"] = rf["img_url"]
         d["img_question"] = rf["img_question"]
+        d["img_question_en"] = rf["img_question_en"]
         d["img_answer"] = rf["img_answer"]
+        d["img_answer_en"] = rf["img_answer_en"]
 
     return Annotation(d)
 
@@ -76,13 +88,17 @@ class Annotation:
 
     if not self.skipped:
       self.question = d["question"]
+      self.question_en = d["question_en"]
       self.answer = d["answer"]
+      self.answer_en = d["answer_en"]
 
       self.img_skipped = d["img_skipped"]
       if not self.img_skipped:
         self.img_url = d["img_url"]
         self.img_question = d["img_question"]
+        self.img_question_en = d["img_question_en"]
         self.img_answer = d["img_answer"]
+        self.img_answer_en = d["img_answer_en"]
     else:
       self.skipped_reason = d["skipped_reason"]
 
@@ -102,13 +118,17 @@ class Annotation:
 
     if not self.skipped:
       d["question"] = self.question
+      d["question_en"] = self.question_en
       d["answer"] = self.answer
+      d["answer_en"] = self.answer_en
 
       d["img_skipped"] = self.img_skipped
       if not self.img_skipped:
         d["img_url"] = self.img_url
         d["img_question"] = self.img_question
+        d["img_question_en"] = self.img_question_en
         d["img_answer"] = self.img_answer
+        d["img_answer_en"] = self.img_answer_en
 
     else:
       d["skipped_reason"] = self.skipped_reason
