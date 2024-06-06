@@ -69,7 +69,7 @@ def annotate_wiki(wiki_title):
     return render_template(
         "annotate.html",
         username=username,
-        editing=wiki_title in annotations,
+        editing=wiki_title in annotations and not annotations[wiki_title].skipped,
         data=existing_annotation)
 
 @app.route("/annotate", methods=["GET"])
@@ -86,7 +86,7 @@ def annotate_random():
     return render_template(
         "annotate.html",
         username=username,
-        editing=random_title in annotations,
+        editing=random_title in annotations and not annotations[random_title].skipped,
         data=existing_annotation)
 
 @app.route("/linkclick", methods=["POST"])
