@@ -216,7 +216,7 @@ $(document).ready(function(){
             <div class="invalid-feedback">Please provide a visual question or check above to skip.</div>
           </div>
           <div class="form-group my-3 col">
-            <label for="img_question_en">Visual question:</label>
+            <label for="img_question_en">Visual question (English):</label>
             <textarea class="form-control" id="img_question_en" name="img_question_en" rows="3">{% if not data.img_skipped %}{{data.img_question_en}}{% endif %}</textarea>
             <div class="invalid-feedback">Please provide the English translation of the visual question.</div>
           </div>
