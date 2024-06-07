@@ -5,6 +5,7 @@ import requests
 import time
 from flask import Flask, render_template, request, redirect, url_for
 from functools import wraps
+from langcodes import Language
 
 from app.config import load_user_config
 from app.annotation import Annotation
@@ -23,6 +24,31 @@ def get_user_annotations(username):
                 annotations[a.wiki_title] = Annotation(obj)
 
     return annotations
+
+@app.template_filter()
+def lang_name(lang):
+    return Language.get(lang).display_name()
+
+@app.template_filter()
+def lang_flag(lang):
+    # support czech, slovak, ukrainian, romanian, italian, english and german, return utf-8 flag emojis
+    lang = lang.lower()
+    if lang == "cs":
+        return "🇨🇿"
+    elif lang == "sk":
+        return "🇸🇰"
+    elif lang == "uk":
+        return "🇺🇦"
+    elif lang == "ro":
+        return "🇷🇴"
+    elif lang == "it":
+        return "🇮🇹"
+    elif lang == "en":
+        return "🇬🇧"
+    elif lang == "de":
+        return "🇩🇪"
+    else:
+        return lang
 
 @app.template_filter()
 def format_datetime(timestamp):
