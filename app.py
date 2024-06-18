@@ -13,18 +13,6 @@ from app.user import User, load_users_from_json
 app = Flask(__name__)
 users = {}
 
-def get_user_annotations(user):
-    annotations = {}
-    with jsonlines.open(user.data_file) as reader:
-        for obj in reader:
-            a = Annotation(obj)
-            if a.wiki_title in annotations and a.time_saved > annotations[a.wiki_title].time_saved:
-                annotations[a.wiki_title] = Annotation(obj)
-            else:
-                annotations[a.wiki_title] = Annotation(obj)
-
-    return annotations
-
 @app.template_filter()
 def lang_name(lang):
     return Language.get(lang).display_name()
@@ -73,20 +61,20 @@ def logged_in(f):
 @logged_in
 def index():
     user = users[request.cookies.get("username")]
-    annotations = get_user_annotations(user)
-    numvalid = len([a for a in annotations.values() if not a.skipped])
+    annotations = user.annotations()
+    numvalid = user.numvalid()
 
     return render_template("dashboard.html",
                            user=user,
-                           annotations=list(sorted(annotations.values(), key=lambda x: x.time_saved, reverse=True)),
-                           numvalid=numvalid)
+                           annotations=list(sorted(annotations.values(), key=lambda x: x.time_saved, reverse=True)))
+                           
 
 
 @app.route("/annotate/<string:wiki_title>")
 @logged_in
 def annotate_wiki(wiki_title):
     user = users[request.cookies.get("username")]
-    annotations = get_user_annotations(user)
+    annotations = user.annotations()
     existing_annotation = annotations.get(
         wiki_title,
         Annotation.empty_annotation(wiki_title, user.lang, False))
@@ -103,7 +91,7 @@ def annotate_wiki(wiki_title):
 def annotate_random():
     user = users[request.cookies.get("username")]
     random_title = get_random_article(user.lang)
-    annotations = get_user_annotations(user)
+    annotations = user.annotations()
     existing_annotation = annotations.get(
         random_title,
         Annotation.empty_annotation(random_title, user.lang, True))

@@ -6,10 +6,14 @@
     <!-- show list of users -->
     <h2 class="mt-5">Users</h2>
     <ul class="list-group">
-        {% for user in users %}
+        {% for user in users.values() %}
         <li class="list-group-item d-flex justify-content-between align-items-center">
-            <a href="/admin/user/{{user.username}}">{{user.username}}</a>
-            <span class="badge bg-primary rounded-pill">{{user.numvalid}} annotations</span>
+            <a href="/admin/user/{{user.name}}">{{user.name}}</a>
+            <div>
+                <span class="badge bg-primary ">{{user.numvalid()}} annotations</span>
+                <span class="badge bg-secondary ">{{user.numannotations()}} total</span>
+                <span class="badge bg-success ">{{user.time_spent() |round|int}} s</span>
+            </div>
         </li>
         {% endfor %}
     </ul>
