@@ -7,15 +7,15 @@ from flask import Flask, render_template, request, redirect, url_for
 from functools import wraps
 from langcodes import Language
 
-from app.config import load_user_config
 from app.annotation import Annotation
+from app.user import User, load_users_from_json
 
 app = Flask(__name__)
 users = {}
 
-def get_user_annotations(username):
+def get_user_annotations(user):
     annotations = {}
-    with jsonlines.open(users[username]["logfile"]) as reader:
+    with jsonlines.open(user.data_file) as reader:
         for obj in reader:
             a = Annotation(obj)
             if a.wiki_title in annotations and a.time_saved > annotations[a.wiki_title].time_saved:
@@ -48,7 +48,7 @@ def lang_flag(lang):
     elif lang == "de":
         return "🇩🇪"
     else:
-        return lang
+        return ""
 
 @app.template_filter()
 def format_datetime(timestamp):
@@ -72,12 +72,12 @@ def logged_in(f):
 @app.route("/")
 @logged_in
 def index():
-    username = request.cookies.get("username")
-    annotations = get_user_annotations(username)
+    user = users[request.cookies.get("username")]
+    annotations = get_user_annotations(user)
     numvalid = len([a for a in annotations.values() if not a.skipped])
 
     return render_template("dashboard.html",
-                           username=username,
+                           username=user.name,
                            annotations=list(sorted(annotations.values(), key=lambda x: x.time_saved, reverse=True)),
                            numvalid=numvalid)
 
@@ -85,42 +85,42 @@ def index():
 @app.route("/annotate/<string:wiki_title>")
 @logged_in
 def annotate_wiki(wiki_title):
-    username = request.cookies.get("username")
-    annotations = get_user_annotations(username)
+    user = users[request.cookies.get("username")]
+    annotations = get_user_annotations(user)
     existing_annotation = annotations.get(
         wiki_title,
-        Annotation.empty_annotation(wiki_title, users[username]["lang"], False))
+        Annotation.empty_annotation(wiki_title, user.lang, False))
     existing_annotation.time_loaded = time.time()
 
     return render_template(
         "annotate.html",
-        username=username,
+        username=user.name,
         editing=wiki_title in annotations and not annotations[wiki_title].skipped,
         data=existing_annotation)
 
 @app.route("/annotate", methods=["GET"])
 @logged_in
 def annotate_random():
-    username = request.cookies.get("username")
-    random_title = get_random_article(users[username]["lang"])
-    annotations = get_user_annotations(username)
+    user = users[request.cookies.get("username")]
+    random_title = get_random_article(user.lang)
+    annotations = get_user_annotations(user)
     existing_annotation = annotations.get(
         random_title,
-        Annotation.empty_annotation(random_title, users[username]["lang"], True))
+        Annotation.empty_annotation(random_title, user.lang, True))
     existing_annotation.time_loaded = time.time()
 
     return render_template(
         "annotate.html",
-        username=username,
+        username=user.name,
         editing=random_title in annotations and not annotations[random_title].skipped,
         data=existing_annotation)
 
 @app.route("/linkclick", methods=["POST"])
 @logged_in
 def linkclick():
-    username = request.cookies.get("username")
+    user = users[request.cookies.get("username")]
     anot = Annotation.from_request_form(request.form, linkclick=True)
-    with jsonlines.open(users[username]["logfile"], "a") as writer:
+    with jsonlines.open(user.data_file, "a") as writer:
         writer.write(anot.to_json_dict())
 
     # retrieve the link target
@@ -131,9 +131,9 @@ def linkclick():
 @app.route("/annotate", methods=["POST"])
 @logged_in
 def annotate():
-    username = request.cookies.get("username")
+    user = users[request.cookies.get("username")]
     anot = Annotation.from_request_form(request.form)
-    with jsonlines.open(users[username]["logfile"], "a") as writer:
+    with jsonlines.open(user.data_file, "a") as writer:
         writer.write(anot.to_json_dict())
     return redirect(url_for("annotate_random"))
 
@@ -145,6 +145,15 @@ def wiki(wiki_title):
     # articles
     return redirect(url_for("annotate_wiki", wiki_title=wiki_title))
 
+@app.route("/admin")
+@logged_in
+def admin():
+    user = users[request.cookies.get("username")]
+    if user.role == "admin":
+        return render_template("admin.html", users=users)
+    else:
+        return redirect(url_for("index"))
+    
 
 @app.route("/login", methods=["POST", "GET"])
 def login():
@@ -153,7 +162,7 @@ def login():
         password = hashlib.sha256(
             request.form["password"].encode()).hexdigest()
 
-        if username in users and users[username]["passwd"] == password:
+        if username in users and users[username].passwd == password:
             response = redirect(url_for("index"))
             response.set_cookie("username", username)
             return response
@@ -172,5 +181,5 @@ def logout():
 
 
 if __name__ == "__main__":
-    users = load_user_config("config/users.tsv")
+    users = load_users_from_json("config/users.json")
     app.run(host="0.0.0.0", debug=True, port=8080)
