@@ -77,7 +77,7 @@ def index():
     numvalid = len([a for a in annotations.values() if not a.skipped])
 
     return render_template("dashboard.html",
-                           username=user.name,
+                           user=user,
                            annotations=list(sorted(annotations.values(), key=lambda x: x.time_saved, reverse=True)),
                            numvalid=numvalid)
 
@@ -94,7 +94,7 @@ def annotate_wiki(wiki_title):
 
     return render_template(
         "annotate.html",
-        username=user.name,
+        user=user,
         editing=wiki_title in annotations and not annotations[wiki_title].skipped,
         data=existing_annotation)
 
@@ -111,7 +111,7 @@ def annotate_random():
 
     return render_template(
         "annotate.html",
-        username=user.name,
+        user=user,
         editing=random_title in annotations and not annotations[random_title].skipped,
         data=existing_annotation)
 
@@ -150,7 +150,7 @@ def wiki(wiki_title):
 def admin():
     user = users[request.cookies.get("username")]
     if user.role == "admin":
-        return render_template("admin.html", users=users)
+        return render_template("admin.html", user=user, users=users)
     else:
         return redirect(url_for("index"))
     
