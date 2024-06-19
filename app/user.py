@@ -34,8 +34,6 @@ class User:
         # tehre is no a.time_elapsed_seconds, we do not use that
         return sum(a.time_saved - a.time_loaded for a in self.annotations().values())
 
-
-
         
 def load_users_from_json(path):
     with open(path, "r") as f:
