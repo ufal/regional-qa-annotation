@@ -164,7 +164,17 @@ def admin():
         return render_template("admin.html", user=user, users=users)
     else:
         return redirect(url_for("index"))
-    
+
+# admin/user should show the dashboard of that user
+@app.route("/admin/user/<string:username>")
+@logged_in
+def admin_user(username):
+    user = users[request.cookies.get("username")]
+    if user.role == "admin":
+        return render_template("dashboard.html", user=users[username], annotations=users[username].load_annotations())
+    else:
+        return redirect(url_for("index"))
+
 
 @app.route("/login", methods=["POST", "GET"])
 def login():
