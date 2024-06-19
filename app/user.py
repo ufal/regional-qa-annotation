@@ -12,7 +12,7 @@ class User:
         self.data_file = data_file
         self.role = role
 
-    def annotations(self):
+    def load_annotations(self):
         annotations = {}
         with jsonlines.open(self.data_file) as reader:
             for obj in reader:
@@ -22,17 +22,6 @@ class User:
                 else:
                     annotations[a.wiki_title] = Annotation(obj)
         return annotations
-
-    def numvalid(self):
-        return sum(1 for a in self.annotations().values() if not a.skipped)
-    
-    def numannotations(self):
-        return len(self.annotations())
-    
-    def time_spent(self):
-        # each annotation has time_saved and time_loaded. sum the differences
-        # tehre is no a.time_elapsed_seconds, we do not use that
-        return sum(a.time_saved - a.time_loaded for a in self.annotations().values())
 
         
 def load_users_from_json(path):

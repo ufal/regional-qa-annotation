@@ -14,6 +14,31 @@ app = Flask(__name__)
 users = {}
 
 @app.template_filter()
+def valid(annotations):
+    return {k: v for k, v in annotations.items() if not v.skipped}
+
+@app.template_filter()
+def skipped(annotations):
+    return {k: v for k, v in annotations.items() if v.skipped}
+
+@app.template_filter()
+def median_time_spent(annotations):
+    times = [a.time_saved - a.time_loaded for a in annotations.values()]
+    if not times:
+        return 0
+
+    times.sort()
+    n = len(times)
+    if n % 2 == 0:
+        return (times[n // 2 - 1] + times[n // 2]) / 2
+    else:
+        return times[n // 2]
+
+@app.template_filter()
+def time_spent(annotations):
+    return sum(a.time_saved - a.time_loaded for a in annotations.values())
+
+@app.template_filter()
 def lang_name(lang):
     return Language.get(lang).display_name()
 
@@ -40,6 +65,7 @@ def lang_flag(lang):
 
 @app.template_filter()
 def format_datetime(timestamp):
+    print("timestamp is",timestamp)
     return time.strftime("x%d. x%m. %Y, %H:%M:%S", time.localtime(timestamp)).replace("x0", "x").replace("x", "")
 
 def get_random_article(lng):
@@ -61,12 +87,9 @@ def logged_in(f):
 @logged_in
 def index():
     user = users[request.cookies.get("username")]
-    annotations = user.annotations()
-    numvalid = user.numvalid()
-
-    return render_template("dashboard.html",
-                           user=user,
-                           annotations=list(sorted(annotations.values(), key=lambda x: x.time_saved, reverse=True)))
+    annotations = dict(sorted(user.load_annotations().items(), key=lambda x: x[1].time_saved, reverse=True))
+    return render_template("dashboard.html", user=user, annotations=annotations)
+                           
                            
 
 
@@ -74,7 +97,7 @@ def index():
 @logged_in
 def annotate_wiki(wiki_title):
     user = users[request.cookies.get("username")]
-    annotations = user.annotations()
+    annotations = user.load_annotations()
     existing_annotation = annotations.get(
         wiki_title,
         Annotation.empty_annotation(wiki_title, user.lang, False))
@@ -91,7 +114,7 @@ def annotate_wiki(wiki_title):
 def annotate_random():
     user = users[request.cookies.get("username")]
     random_title = get_random_article(user.lang)
-    annotations = user.annotations()
+    annotations = user.load_annotations()
     existing_annotation = annotations.get(
         random_title,
         Annotation.empty_annotation(random_title, user.lang, True))
