@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import hashlib
 import jsonlines
+import random
 import requests
 import time
 from flask import Flask, render_template, request, redirect, url_for
@@ -9,9 +10,11 @@ from langcodes import Language
 
 from app.annotation import Annotation
 from app.user import User, load_users_from_json
+from app.config import load_wiki_articles
 
 app = Flask(__name__)
 users = {}
+wiki_articles = {}
 
 @app.template_filter()
 def valid(annotations):
@@ -69,6 +72,9 @@ def format_datetime(timestamp):
     return time.strftime("x%d. x%m. %Y, %H:%M:%S", time.localtime(timestamp)).replace("x0", "x").replace("x", "")
 
 def get_random_article(lng):
+    if lng in wiki_articles:
+        return random.choice(wiki_articles[lng])
+
     url = f"https://{lng}.wikipedia.org/api/rest_v1/page/random/summary"
     response = requests.get(url)
     return response.json().get("title")
@@ -90,8 +96,6 @@ def index():
     annotations = dict(sorted(user.load_annotations().items(), key=lambda x: x[1].time_saved, reverse=True))
     return render_template("dashboard.html", user=user, annotations=annotations)
                            
-                           
-
 
 @app.route("/annotate/<string:wiki_title>")
 @logged_in
@@ -203,4 +207,7 @@ def logout():
 
 if __name__ == "__main__":
     users = load_users_from_json("config/users.json")
+
+    wiki_articles = {lang: load_wiki_articles(f"config/wiki_qa_{lang}.json", lang) for lang in ["cs", "sk", "uk"]}
+
     app.run(host="0.0.0.0", debug=True, port=8080)
