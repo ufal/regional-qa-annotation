@@ -12,9 +12,12 @@ from app.annotation import Annotation
 from app.user import User, load_users_from_json
 from app.config import load_wiki_articles
 
+USERS_FILE = "config/users.json"
+WIKI_LANGS = ["cs", "sk", "uk"]
+WIKI_LISTS = [f"config/wiki_qa_{lang}.json" for lang in WIKI_LANGS]
+
 app = Flask(__name__)
-users = {}
-wiki_articles = {}
+app.config["APPLICATION_ROOT"] = "/regional-qa"
 
 @app.template_filter()
 def valid(annotations):
@@ -72,6 +75,8 @@ def format_datetime(timestamp):
     return time.strftime("x%d. x%m. %Y, %H:%M:%S", time.localtime(timestamp)).replace("x0", "x").replace("x", "")
 
 def get_random_article(lng):
+    wiki_articles = {lang: load_wiki_articles(list, lang) for list, lang in zip(WIKI_LISTS, WIKI_LANGS)}
+
     if lng in wiki_articles:
         return random.choice(wiki_articles[lng])
 
@@ -92,14 +97,16 @@ def logged_in(f):
 @app.route("/")
 @logged_in
 def index():
+    users = load_users_from_json(USERS_FILE)
     user = users[request.cookies.get("username")]
     annotations = dict(sorted(user.load_annotations().items(), key=lambda x: x[1].time_saved, reverse=True))
     return render_template("dashboard.html", user=user, annotations=annotations)
-                           
+
 
 @app.route("/annotate/<string:wiki_title>")
 @logged_in
 def annotate_wiki(wiki_title):
+    users = load_users_from_json(USERS_FILE)
     user = users[request.cookies.get("username")]
     annotations = user.load_annotations()
     existing_annotation = annotations.get(
@@ -116,6 +123,7 @@ def annotate_wiki(wiki_title):
 @app.route("/annotate", methods=["GET"])
 @logged_in
 def annotate_random():
+    users = load_users_from_json(USERS_FILE)
     user = users[request.cookies.get("username")]
     random_title = get_random_article(user.lang)
     annotations = user.load_annotations()
@@ -133,6 +141,7 @@ def annotate_random():
 @app.route("/linkclick", methods=["POST"])
 @logged_in
 def linkclick():
+    users = load_users_from_json(USERS_FILE)
     user = users[request.cookies.get("username")]
     anot = Annotation.from_request_form(request.form, linkclick=True)
     with jsonlines.open(user.data_file, "a") as writer:
@@ -146,6 +155,7 @@ def linkclick():
 @app.route("/annotate", methods=["POST"])
 @logged_in
 def annotate():
+    users = load_users_from_json(USERS_FILE)
     user = users[request.cookies.get("username")]
     anot = Annotation.from_request_form(request.form)
     with jsonlines.open(user.data_file, "a") as writer:
@@ -163,6 +173,7 @@ def wiki(wiki_title):
 @app.route("/admin")
 @logged_in
 def admin():
+    users = load_users_from_json(USERS_FILE)
     user = users[request.cookies.get("username")]
     if user.role == "admin":
         return render_template("admin.html", user=user, users=users)
@@ -173,6 +184,7 @@ def admin():
 @app.route("/admin/user/<string:username>")
 @logged_in
 def admin_user(username):
+    users = load_users_from_json(USERS_FILE)
     user = users[request.cookies.get("username")]
     if user.role == "admin":
         return render_template("dashboard.html", user=users[username], annotations=users[username].load_annotations())
@@ -182,6 +194,7 @@ def admin_user(username):
 
 @app.route("/login", methods=["POST", "GET"])
 def login():
+    users = load_users_from_json(USERS_FILE)
     if request.method == "POST":
         username = request.form["username"]
         password = hashlib.sha256(
@@ -206,7 +219,6 @@ def logout():
 
 
 if __name__ == "__main__":
-    users = load_users_from_json("config/users.json")
 
     wiki_articles = {lang: load_wiki_articles(f"config/wiki_qa_{lang}.json", lang) for lang in ["cs", "sk", "uk"]}
 
