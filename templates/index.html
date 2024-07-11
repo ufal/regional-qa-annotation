@@ -23,22 +23,22 @@
   <header class="d-flex align-items-center justify-content-center justify-content-md-between py-3 mb-4 px-5 bg-light border-bottom">
 
     <div class="col-2 mb-2 mb-md-0">
-      <a href="/" class="d-inline-flex link-body-emphasis text-decoration-none">Regional QA</a>
+      <a href="{{ url_for('index') }}" class="d-inline-flex link-body-emphasis text-decoration-none">Regional QA</a>
     </div>
 
     <div class="col-10 text-end">
 
       {% if user %}
         {% if user.role == "admin" %}
-          <a href="/admin" role="button" class="btn btn-outline-primary me-2">Admin</a>
+          <a href="{{ url_for('admin') }}" role="button" class="btn btn-outline-primary me-2">Admin</a>
         {% endif %}
-        
-        <a href="/" role="button" class="btn btn-outline-primary me-2">Dashboard</a>
-        <a href="/annotate" role="button" class="btn btn-primary me-2">Annotation</a>
-        <a href="/logout" role="button" class="btn btn-outline-primary me-2">Logout {{user.name}}</a>
-      
+
+        <a href="{{ url_for('index') }}" role="button" class="btn btn-outline-primary me-2">Dashboard</a>
+        <a href="{{ url_for('annotate') }}" role="button" class="btn btn-primary me-2">Annotation</a>
+        <a href="{{ url_for('logout') }}" role="button" class="btn btn-outline-primary me-2">Logout {{user.name}}</a>
+
       {% else %}
-        <a href="/login" role="button" class="btn btn-primary me-2">Login</a>
+        <a href="{{ url_for('login') }}" role="button" class="btn btn-primary me-2">Login</a>
       {% endif %}
 
     </div>

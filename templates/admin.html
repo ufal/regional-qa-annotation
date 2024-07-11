@@ -5,13 +5,13 @@
 <div class="container">
     <!-- show list of users -->
     <h2 class="mt-5">Users</h2>
-    
-    
+
+
     <ul class="list-group">
         {% for user in users.values() %}
         {% set annotations = user.load_annotations() %}
         <li class="list-group-item d-flex justify-content-between align-items-center">
-            <a href="/admin/user/{{user.name}}">{{user.name}}</a>
+            <a href="{{ url_for('admin_user', username=user.name) }}">{{user.name}}</a>
 
             <!-- another way to show the statistics would be without badges and with fixed width like this:-->
             <div class="d-inline-flex col-6 justify-content-around">
@@ -22,14 +22,14 @@
                     <span class="bi-fast-forward-fill text-warning" title="Skipped annotations"></span></div>
 
                 <div class="col-4 text-end">{{annotations|length}} ({{annotations|time_spent|round|int}} s, median: {{annotations|median_time_spent|round|int}} s)
-                    <span class="bi-archive-fill text-secondary" title="All annotations"></span></div>                
-                
+                    <span class="bi-archive-fill text-secondary" title="All annotations"></span></div>
+
                 <!-- {# <div class="col-2 text-end">{{annotations|valid|time_spent|round|int}} s <span class="bi-clock-fill text-success" title="Time spent"></span></div>
                 <div class="col-2 text-end">{{annotations|skipped|time_spent|round|int}} s <span class="bi-clock-fill text-warning" title="Time spent"></span></div>
                 <div class="col-2 text-end">{{annotations|time_spent|round|int}} s <span class="bi-clock-fill text-secondary" title="Time spent"></span></div> #} -->
             </div>
 
-            
+
         </li>
         {% endfor %}
     </ul>
