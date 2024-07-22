@@ -25,9 +25,12 @@ $(document).ready(function(){
       // treat every link inside #article whose href begins with /wiki/ as the skip button, but preserve the final URL
       // so first prevent default, then change the form action to /linkclick, and finally submit the form.
       $("#article").find('a').each(function() {
-
+	var prefix = '{{ url_for("index") }}'.replace(/\/$/, "");
         var href = $(this).attr('href');
+
         if (href != undefined && href.startsWith('/wiki/')) {
+	   $(this).attr('href', prefix + href);
+
           // make exception if this "a" contains an image
           if ($(this).find('img').length > 0) {
             return;
@@ -36,8 +39,8 @@ $(document).ready(function(){
           $(this).click(function(e) {
             e.preventDefault();
 
-            $('form').attr('action', '/linkclick');
-            $('form').append('<input type="hidden" name="final_url" value="' + href + '">');
+            $('form').attr('action', '{{ url_for("linkclick") }}');
+            $('form').append('<input type="hidden" name="final_url" value="' + prefix + href + '">');
 
             // set the active element name to skip so that the form validation does not run
             $('button[name="skip"]').click();
@@ -79,7 +82,7 @@ $(document).ready(function(){
 
     // if the form action is /linkclick, we don't want to validate
     var action = $('form').attr('action');
-    if (action == '/linkclick') {
+    if (action == '{{ url_for("linkclick") }}') {
       return;
     }
 
@@ -162,7 +165,7 @@ $(document).ready(function(){
 
 <div class="container-fluid p-3 d-flex h-100">
   <div class="d-flex flex-column flex-shrink-0 p-3 position-sticky sticky-top h-50 container" style="width: 640px;">
-    <form action="/annotate" method="post" novalidate>
+    <form action="{{ url_for('annotate') }}" method="post" novalidate>
       <!--hidden fields for wiki title and language -->
       <input type="hidden" id="wiki_title" name="wiki_title" value="{{data.wiki_title}}">
       <input type="hidden" id="wiki_lang" name="wiki_lang" value="{{data.wiki_lang}}">
@@ -175,7 +178,7 @@ $(document).ready(function(){
           <textarea class="form-control" id="question" name="question" rows="3">{{data.question}}</textarea>
           <div class="invalid-feedback">Please provide a question.</div>
         </div>
-        
+
         <div class="form-group my-3 col">
           <label for="answer">Answer in {{data.wiki_lang|lang_name}} {{data.wiki_lang|lang_flag}}</label>
           <textarea class="form-control" id="answer" name="answer" rows="3">{{data.answer}}</textarea>
@@ -215,7 +218,7 @@ $(document).ready(function(){
             <textarea class="form-control" id="img_question" name="img_question" rows="3">{% if not data.img_skipped %}{{data.img_question}}{% endif %}</textarea>
             <div class="invalid-feedback">Please provide a visual question or check above to skip.</div>
           </div>
-          
+
           <div class="form-group my-3 col">
             <label for="img_answer">Visual answer in {{data.wiki_lang|lang_name}} {{data.wiki_lang|lang_flag}}</label>
             <textarea class="form-control" id="img_answer" name="img_answer" rows="3">{% if not data.img_skipped %}{{data.img_answer}}{% endif %}</textarea>

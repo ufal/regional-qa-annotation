@@ -71,7 +71,6 @@ def lang_flag(lang):
 
 @app.template_filter()
 def format_datetime(timestamp):
-    print("timestamp is",timestamp)
     return time.strftime("x%d. x%m. %Y, %H:%M:%S", time.localtime(timestamp)).replace("x0", "x").replace("x", "")
 
 def get_random_article(lng):
@@ -82,7 +81,7 @@ def get_random_article(lng):
 
     url = f"https://{lng}.wikipedia.org/api/rest_v1/page/random/summary"
     response = requests.get(url)
-    return response.json().get("title")
+    return response.json().get("titles", {}).get("canonical")
 
 def logged_in(f):
     @wraps(f)
@@ -106,6 +105,8 @@ def index():
 @app.route("/annotate/<string:wiki_title>")
 @logged_in
 def annotate_wiki(wiki_title):
+    wiki_title = wiki_title.encode("latin-1").decode("utf-8")
+
     users = load_users_from_json(USERS_FILE)
     user = users[request.cookies.get("username")]
     annotations = user.load_annotations()
@@ -168,6 +169,7 @@ def annotate():
 def wiki(wiki_title):
     # we are including texts from wiki - we can intercept this route to switch
     # articles
+    wiki_title = wiki_title.encode("latin-1").decode("utf-8")
     return redirect(url_for("annotate_wiki", wiki_title=wiki_title))
 
 @app.route("/admin")

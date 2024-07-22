@@ -11,7 +11,7 @@
   {% if not annotation.skipped %}
   <li class="list-group-item justify-content-between d-flex align-items-center">
     <div>
-        <a href="{{ url_for('annotate', wiki_title=annotation.wiki_title) }}" class="me-3">{{annotation.wiki_title}}</a>
+        <a href="{{ url_for('annotate_wiki', wiki_title=annotation.wiki_title) }}" class="me-3">{{annotation.wiki_title}}</a>
         <span class="fw-light small me-3">{{annotation.question}}</span>
         <span class="fw-light small">{{annotation.answer}}</span>
     </div>
@@ -44,7 +44,7 @@
   {% if annotation.skipped %}
   <li class="list-group-item justify-content-between d-flex align-items-center">
     <div>
-        <a href="{{ url_for('annotate', wiki_title=annotation.wiki_title) }}" class="me-3">{{annotation.wiki_title}}</a>
+        <a href="{{ url_for('annotate_wiki', wiki_title=annotation.wiki_title) }}" class="me-3">{{annotation.wiki_title}}</a>
         <span class="fw-light small me-3">{{annotation.question}}</span>
         <span class="fw-light small">{{annotation.answer}}</span>
     </div>
