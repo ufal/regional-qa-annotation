@@ -1,25 +1,34 @@
 import json
+import re
+from urllib.parse import unquote
 
 
-def load_wiki_articles(path, language):
-    # loads a json file which looks like this:
-    # [
-    #   {
-    #     "en_wiki": "http://en.wikipedia.org/wiki/Pote\u010d",
-    #     "cs_wiki": "http://cs.wikipedia.org/wiki/Pote\u010d",
-    #     "wiki_id": 24130327,
-    #     "topics": [
-    #       "geo",
-    #       "generic"
-    #     ]
-    #   },
-    # ... and so on
-    # returns a list of wiki titles extracted from the ??_wiki (depending on the language parameter -- in this case it would be "cs")
-    # wiki title is the thing that follows the wiki/ in the URL
-    # 
-    # also convert the escaped unicode characters to actual unicode characters
+def normalize_title(title):
+    # wiki normalization does more stuff but we only need this because the
+    # titles are extracted from wiki itself.
+    return title.replace(" ", "_")
 
-    with open(path, "r") as f:
-        data = json.load(f)
-    return [d[f"{language}_wiki"].split("/")[-1] for d in data]
 
+def load_wiki_titles_from_urls(path, urlencoded=True):
+    titles = []
+
+    with open(path) as f:
+        for url in f:
+            if urlencoded:
+                url = unquote(url)
+
+            url = url.rstrip("\r\n")
+            title = re.sub("^.*wikipedia.org/wiki/", "", url)
+            titles.append(title)
+
+    return titles
+
+
+def load_wiki_titles(path, normalized=False):
+    urls = []
+    with open(path) as f:
+        for title in f:
+            if not normalized:
+                title = normalize_title(title)
+            urls.append(title.rstrip("\r\n"))
+    return urls

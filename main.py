@@ -10,11 +10,13 @@ from langcodes import Language
 
 from app.annotation import Annotation
 from app.user import User, load_users_from_json
-from app.config import load_wiki_articles
+from app.config import load_wiki_titles_from_urls, load_wiki_titles
 
 USERS_FILE = "config/users.json"
+
 WIKI_LANGS = ["cs", "sk", "uk"]
-WIKI_LISTS = [f"config/wiki_qa_{lang}.json" for lang in WIKI_LANGS]
+WIKI_LISTS_SPARQL = {lang: f"data/{lang}_wiki_fixed.txt" for lang in WIKI_LANGS}
+WIKI_LISTS_LOCAL = {lang: f"data/{lang}_articles_only.txt" for lang in WIKI_LANGS}
 
 app = Flask(__name__)
 
@@ -73,10 +75,15 @@ def format_datetime(timestamp):
     return time.strftime("x%d. x%m. %Y, %H:%M:%S", time.localtime(timestamp)).replace("x0", "x").replace("x", "")
 
 def get_random_article(lng):
-    wiki_articles = {lang: load_wiki_articles(list, lang) for list, lang in zip(WIKI_LISTS, WIKI_LANGS)}
+    article_pool = []
+    if lng in WIKI_LISTS_SPARQL:
+        article_pool.extend(load_wiki_titles_from_urls(WIKI_LISTS_SPARQL[lng]))
 
-    if lng in wiki_articles:
-        return random.choice(wiki_articles[lng])
+    if lng in WIKI_LISTS_LOCAL:
+        article_pool.extend(load_wiki_titles(WIKI_LISTS_LOCAL[lng]))
+
+    if article_pool:
+        return random.choice(article_pool)
 
     url = f"https://{lng}.wikipedia.org/api/rest_v1/page/random/summary"
     response = requests.get(url)
@@ -220,7 +227,4 @@ def logout():
 
 
 if __name__ == "__main__":
-
-    wiki_articles = {lang: load_wiki_articles(f"config/wiki_qa_{lang}.json", lang) for lang in ["cs", "sk", "uk"]}
-
     app.run(host="0.0.0.0", debug=True, port=8080)
