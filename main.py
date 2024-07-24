@@ -17,7 +17,6 @@ WIKI_LANGS = ["cs", "sk", "uk"]
 WIKI_LISTS = [f"config/wiki_qa_{lang}.json" for lang in WIKI_LANGS]
 
 app = Flask(__name__)
-app.config["APPLICATION_ROOT"] = "/regional-qa"
 
 @app.template_filter()
 def valid(annotations):
