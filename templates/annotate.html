@@ -25,11 +25,11 @@ $(document).ready(function(){
       // treat every link inside #article whose href begins with /wiki/ as the skip button, but preserve the final URL
       // so first prevent default, then change the form action to /linkclick, and finally submit the form.
       $("#article").find('a').each(function() {
-	var prefix = '{{ url_for("index") }}'.replace(/\/$/, "");
+	      var prefix = '{{ url_for("index") }}'.replace(/\/$/, "");
         var href = $(this).attr('href');
 
         if (href != undefined && href.startsWith('/wiki/')) {
-	   $(this).attr('href', prefix + href);
+	        $(this).attr('href', prefix + href);
 
           // make exception if this "a" contains an image
           if ($(this).find('img').length > 0) {
@@ -40,9 +40,9 @@ $(document).ready(function(){
             e.preventDefault();
 
             $('form').attr('action', '{{ url_for("linkclick") }}');
-            $('form').append('<input type="hidden" name="final_url" value="' + prefix + href + '">');
+            $("input[name='clicked_url']").val(prefix + href);
 
-            // set the active element name to skip so that the form validation does not run
+            // click the skip button
             $('button[name="skip"]').click();
           });
         }
@@ -77,6 +77,7 @@ $(document).ready(function(){
     // we only want to validate if the submit button was pressed
     var button = $(document.activeElement).attr('name');
     if (button == 'skip') {
+      // this happens only when skip button is clicked by the user
       return;
     }
 
@@ -171,6 +172,8 @@ $(document).ready(function(){
       <input type="hidden" id="wiki_lang" name="wiki_lang" value="{{data.wiki_lang}}">
       <input type="hidden" id="randomness" name="randomness" value="{{data.random_page}}">
       <input type="hidden" id="timestamp" name="timestamp" value="{{data.time_loaded}}">
+
+      <input type="hidden" id="clicked_url" name="clicked_url" value="">
 
       <div class="row">
         <div class="form-group my-3 col">

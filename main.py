@@ -155,7 +155,7 @@ def linkclick():
         writer.write(anot.to_json_dict())
 
     # retrieve the link target
-    target = request.form["final_url"]
+    target = request.form["clicked_url"]
     return redirect(target)
 
 
