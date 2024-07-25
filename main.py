@@ -145,20 +145,6 @@ def annotate_random():
         editing=random_title in annotations and not annotations[random_title].skipped,
         data=existing_annotation)
 
-@app.route("/linkclick", methods=["POST"])
-@logged_in
-def linkclick():
-    users = load_users_from_json(USERS_FILE)
-    user = users[request.cookies.get("username")]
-    anot = Annotation.from_request_form(request.form, linkclick=True)
-    with jsonlines.open(user.data_file, "a") as writer:
-        writer.write(anot.to_json_dict())
-
-    # retrieve the link target
-    target = request.form["clicked_url"]
-    return redirect(target)
-
-
 @app.route("/annotate", methods=["POST"])
 @logged_in
 def annotate():
@@ -167,7 +153,11 @@ def annotate():
     anot = Annotation.from_request_form(request.form)
     with jsonlines.open(user.data_file, "a") as writer:
         writer.write(anot.to_json_dict())
-    return redirect(url_for("annotate_random"))
+
+    if request.form["clicked_url"]:
+        return redirect(request.form["clicked_url"])
+    else:
+        return redirect(url_for("annotate_random"))
 
 
 @app.route("/wiki/<string:wiki_title>")

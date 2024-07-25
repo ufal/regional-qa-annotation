@@ -48,7 +48,7 @@ class Annotation:
     })
 
   @staticmethod
-  def from_request_form(rf: dict, linkclick=False):
+  def from_request_form(rf: dict):
     d = {}
 
     d["wiki_lang"] = rf["wiki_lang"]
@@ -60,7 +60,7 @@ class Annotation:
     d["skipped"] = "skip" in rf
 
     if d["skipped"]:
-      d["skipped_reason"] = "linkclick" if linkclick else "skip"
+      d["skipped_reason"] = "linkclick" if rf["clicked_url"] else "skip"
     else:
       d["question"] = rf["question"]
       d["question_en"] = rf["question_en"]

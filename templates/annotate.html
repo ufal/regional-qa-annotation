@@ -22,8 +22,9 @@ $(document).ready(function(){
       $('#title').html(title);
       $('#article').html(content);
 
-      // treat every link inside #article whose href begins with /wiki/ as the skip button, but preserve the final URL
-      // so first prevent default, then change the form action to /linkclick, and finally submit the form.
+      // treat every link inside #article whose href begins with /wiki/ as the skip button
+      // after clicking a link, update the "clicked_url" form field and click skip
+      
       $("#article").find('a').each(function() {
 	      var prefix = '{{ url_for("index") }}'.replace(/\/$/, "");
         var href = $(this).attr('href');
@@ -36,14 +37,14 @@ $(document).ready(function(){
             return;
           }
 
+          // link click event handler
           $(this).click(function(e) {
             e.preventDefault();
-
-            $('form').attr('action', '{{ url_for("linkclick") }}');
+            
             $("input[name='clicked_url']").val(prefix + href);
 
             // click the skip button
-            $('button[name="skip"]').click();
+            $("#linkskip-button").click();
           });
         }
         else {
@@ -71,21 +72,94 @@ $(document).ready(function(){
   });
 
 
+  function formNotEmpty() {
+    var question = $('#question').val();
+    var answer = $('#answer').val();
+    var img_url = $('#img_url').val();
+    var img_question = $('#img_question').val();
+    var img_answer = $('#img_answer').val();
+
+    if (question != "" || answer != "" || img_url != "" || img_question != "" || img_answer != "") {
+      return true;
+    }
+    return false;
+  }
+
+  // reset the clicked_url input when submit or skip button is clicked
+  $('#submit-button, #skip-button').click(function() {
+    $("input[name='clicked_url']").val("");
+  });
+
+
+
   //form validation
   $('form').submit(function(e){
-
+    
     // we only want to validate if the submit button was pressed
     var button = $(document.activeElement).attr('name');
+
     if (button == 'skip') {
       // this happens only when skip button is clicked by the user
+      if (formNotEmpty()) {
+        if (!confirm("You have not submitted the form. Are you sure you want to skip?")) {
+          e.preventDefault();
+        }
+      }
       return;
     }
 
-    // if the form action is /linkclick, we don't want to validate
-    var action = $('form').attr('action');
-    if (action == '{{ url_for("linkclick") }}') {
+    // if "clicked_url" is not empty, we don't want to validate
+    var clicked_url = $('input[name="clicked_url"]').val();
+    if (clicked_url != "") {
       return;
     }
+
+/* 
+      // if the form is not empty, ask user whether to submit or skip and give them the following three options:
+      // the user has three options: cancel and return to annotation, discard the form, and submit.
+      if (formNotEmpty()) {
+        e.preventDefault();
+
+       // confirm dialog with three options:
+        // 1. cancel and return to annotation
+        // 2. discard the form
+        // 3. submit
+
+        // use bootstrap modals for this.
+        var modal = `
+        <div class="modal" tabindex="-1" role="dialog" id="modal">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">You have not submitted the form.</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <p>What would you like to do?</p>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel and return to annotation</button>
+                <button type="button" class="btn btn-danger" id="discard">Discard the form</button>
+                <button type="submit" class="btn btn-primary">Submit and continue</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        `;
+
+        $('body').append(modal);
+        var modal = new bootstrap.Modal(document.getElementById('modal'));
+        modal.show();
+
+        $('#discard').click(function() {
+          modal.hide();
+          // ... TODO
+        });
+        
+        
+      }
+ */
+      
 
     var question = $('#question').val();
     var answer = $('#answer').val();
@@ -130,9 +204,6 @@ $(document).ready(function(){
       }
     }
   });
-
-
-
 });
 
 </script>
@@ -247,12 +318,16 @@ $(document).ready(function(){
 
 
       <div class="form-group my-3 text-end">
+      
+        <button type="submit" class="btn btn-primary" name="linkskip" id="linkskip-button" style="display: none;"></button>
+
         {% if editing %}
-        <button type="submit" class="btn btn-outline-danger" name="skip">Delete</button>
+        <button type="submit" id="skip-button" class="btn btn-outline-danger" name="skip">Delete</button>
         {% else %}
-        <button type="submit" class="btn btn-outline-secondary" name="skip">Skip</button>
+        <button type="submit" id="skip-button" class="btn btn-outline-secondary" name="skip">Skip</button>
         {% endif %}
-        <button type="submit" class="btn btn-primary">Submit</button>
+        
+        <button type="submit" class="btn btn-primary" name="submit" id="submit-button">Submit</button>
       </div>
     </form>
   </div>
