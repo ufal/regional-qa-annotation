@@ -57,7 +57,7 @@ class Annotation:
     d["time_saved"] = time.time()
     d["time_loaded"] = float(rf["timestamp"])
 
-    d["skipped"] = "skip" in rf
+    d["skipped"] = "skip" in rf or "linkskip" in rf
 
     if d["skipped"]:
       d["skipped_reason"] = "linkclick" if rf["clicked_url"] else "skip"
