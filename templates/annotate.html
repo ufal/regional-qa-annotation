@@ -101,7 +101,14 @@ $(document).ready(function(){
     if (button == 'skip') {
       // this happens only when skip button is clicked by the user
       if (formNotEmpty()) {
-        if (!confirm("You have not submitted the form. Are you sure you want to skip?")) {
+
+        // {% if editing %}
+        var msg = "Are you sure you want to delete this annotation?";
+        // {% else %}
+        var msg = "You have not submitted the form. Are you sure you want to skip?";
+        // {% endif %}       
+        
+        if (!confirm(msg)) {
           e.preventDefault();
         }
       }
@@ -111,6 +118,20 @@ $(document).ready(function(){
     // if "clicked_url" is not empty, we don't want to validate
     var clicked_url = $('input[name="clicked_url"]').val();
     if (clicked_url != "") {
+      if (formNotEmpty()) {
+
+        // {% if editing %}
+        var msg = "Clicking the link will delete the annotation. Are you sure?";
+        // {% else %}
+        var msg = "Clicking the link will discard the annotation. Are you sure?";
+        // {% endif %}       
+
+        if (!confirm(msg)) {
+          e.preventDefault();
+        }
+        }
+
+
       return;
     }
 
