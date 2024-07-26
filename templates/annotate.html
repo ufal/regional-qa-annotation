@@ -339,9 +339,7 @@ $(document).ready(function(){
 
       <div class="row">
 	<label for="comment">Comment (optional)</label>
-	<textarea class="form-control" id="comment" name="comment" rows="2">
-	  {% data.comment %}
-	</textarea>
+	<textarea class="form-control" id="comment" name="comment" rows="2">{{data.comment}}</textarea>
       </div>
 
       <div class="form-group my-3 text-end">
