@@ -24,7 +24,7 @@ $(document).ready(function(){
 
       // treat every link inside #article whose href begins with /wiki/ as the skip button
       // after clicking a link, update the "clicked_url" form field and click skip
-      
+
       $("#article").find('a').each(function() {
 	      var prefix = '{{ url_for("index") }}'.replace(/\/$/, "");
         var href = $(this).attr('href');
@@ -40,7 +40,7 @@ $(document).ready(function(){
           // link click event handler
           $(this).click(function(e) {
             e.preventDefault();
-            
+
             $("input[name='clicked_url']").val(prefix + href);
 
             // click the skip button
@@ -94,7 +94,7 @@ $(document).ready(function(){
 
   //form validation
   $('form').submit(function(e){
-    
+
     // we only want to validate if the submit button was pressed
     var button = $(document.activeElement).attr('name');
 
@@ -106,8 +106,8 @@ $(document).ready(function(){
         var msg = "Are you sure you want to delete this annotation?";
         // {% else %}
         var msg = "You have not submitted the form. Are you sure you want to skip?";
-        // {% endif %}       
-        
+        // {% endif %}
+
         if (!confirm(msg)) {
           e.preventDefault();
         }
@@ -124,7 +124,7 @@ $(document).ready(function(){
         var msg = "Clicking the link will delete the annotation. Are you sure?";
         // {% else %}
         var msg = "Clicking the link will discard the annotation. Are you sure?";
-        // {% endif %}       
+        // {% endif %}
 
         if (!confirm(msg)) {
           e.preventDefault();
@@ -135,7 +135,7 @@ $(document).ready(function(){
       return;
     }
 
-/* 
+/*
       // if the form is not empty, ask user whether to submit or skip and give them the following three options:
       // the user has three options: cancel and return to annotation, discard the form, and submit.
       if (formNotEmpty()) {
@@ -176,11 +176,11 @@ $(document).ready(function(){
           modal.hide();
           // ... TODO
         });
-        
-        
+
+
       }
  */
-      
+
 
     var question = $('#question').val();
     var answer = $('#answer').val();
@@ -337,9 +337,15 @@ $(document).ready(function(){
 
       </div>
 
+      <div class="row">
+	<label for="comment">Comment (optional)</label>
+	<textarea class="form-control" id="comment" name="comment" rows="2">
+	  {% data.comment %}
+	</textarea>
+      </div>
 
       <div class="form-group my-3 text-end">
-      
+
         <button type="submit" id="linkskip-button" name="linkskip"  style="display: none;">Skip via link</button>
 
         {% if editing %}
@@ -347,7 +353,7 @@ $(document).ready(function(){
         {% else %}
         <button type="submit" id="skip-button" class="btn btn-outline-secondary" name="skip">Skip</button>
         {% endif %}
-        
+
         <button type="submit" class="btn btn-primary" name="submit" id="submit-button">Submit</button>
       </div>
     </form>

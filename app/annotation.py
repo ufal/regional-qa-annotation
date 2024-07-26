@@ -25,6 +25,8 @@ class Annotation:
   skipped_reason: str
   random_page: bool
 
+  comment: str
+
   @staticmethod
   def empty_annotation(wiki_title: str, wiki_lang: str, random: bool):
     return Annotation({
@@ -44,7 +46,8 @@ class Annotation:
       "skipped_reason": "",
       "time_loaded": time.time(),
       "time_saved": time.time(),
-      "random_page": random
+      "random_page": random,
+      "comment": ""
     })
 
   @staticmethod
@@ -76,6 +79,8 @@ class Annotation:
         d["img_answer"] = rf["img_answer"]
         d["img_answer_en"] = rf["img_answer_en"]
 
+    d["comment"] = rf["comment"] if "comment" in rf else ""
+
     return Annotation(d)
 
   def __init__(self, d: dict):
@@ -101,6 +106,9 @@ class Annotation:
         self.img_answer_en = d["img_answer_en"]
     else:
       self.skipped_reason = d["skipped_reason"]
+
+    if "comment" in d:
+      self.comment = d["comment"]
 
   @property
   def time_elapsed_seconds(self) -> int:
@@ -132,5 +140,8 @@ class Annotation:
 
     else:
       d["skipped_reason"] = self.skipped_reason
+
+    if self.comment:
+      d["comment"] = self.comment
 
     return d
