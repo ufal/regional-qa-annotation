@@ -2,6 +2,15 @@
 
 {% block content %}
 
+<script>
+  $(document).ready(function(){
+    $('[data-bs-toggle="popover"]').popover({
+      trigger: 'hover',
+      html: true
+    });
+  });
+</script>
+
 <div class="container">
 <p class="lead">Hello {{user.name}}! You have completed {{annotations|valid|length}} annotations.</p>
 
@@ -24,17 +33,29 @@
     <span class="bi-sticky-fill text-info mx-1" title="{{annotation.comment}}"></span>
     {% endif %}
 
+    
 
-      {% if not annotation.img_skipped %}
-    <span class="bi-image text-success mx-1" title="contains image info"></span>
+    {% if not annotation.img_skipped %}
+    <span class="bi-image text-success mx-1" title="Image QA" data-bs-toggle="popover" data-bs-html="true" 
+          data-bs-content="
+            <div class='card' style='width: 18rem'>
+              <img class='card-img-top' src='{{annotation.img_url}}' alt='annotated image'>
+              <div class='card-body'>
+                <p class='card-text'>{{annotation.img_question}}</p>
+                <p class='card-text'>{{annotation.img_answer}}</p>
+              </div>
+            </div>
+          "></span>
     {% else %}
-    <!--    <span class="bi-image text-danger" title="no image info"></span> -->
+       <span class="bi-image text-danger mx-1 invisible"; title="no image info"></span> 
     {% endif %}
 
     <!-- show time_saved, but it is timestamp so first convert to datetime -->
     <span class="small mx-1">{{annotation.time_saved|format_datetime }} </span>
     <div class="small mx-1" style="min-width: 4em;"> ({{annotation.time_elapsed_seconds}} s) </div>
-    <span class="bi-check-circle-fill text-success mx-2" title="completed"></span>
+    
+    <span class="bi-dice-{{range(1,7)|random}}  text-secondary mx-1 {{ 'visible' if annotation.random_page else 'invisible'}}" title="Random page"> </span>
+    <span class="bi-check-circle-fill text-success mx-1" title="completed"></span>
 
     </div>
   {% endif %}
@@ -59,7 +80,8 @@
     <!-- show time_saved, but it is timestamp so first convert to datetime -->
     <span class="small mx-1">{{annotation.time_saved|format_datetime }} </span>
     <div class="small mx-1" style="min-width: 4em;"> ({{annotation.time_elapsed_seconds}} s) </div>
-    <span class="bi-fast-forward-fill text-warning mx-2" title="skipped"></span>
+    <span class="bi-dice-{{range(1,7)|random}} text-secondary mx-1 {{ 'visible' if annotation.random_page else 'invisible'}}" title="Random page"> </span>
+    <span class="bi-fast-forward-fill text-warning mx-1" title="skipped"></span>
 
     </div>
   {% endif %}
