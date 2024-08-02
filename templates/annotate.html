@@ -19,6 +19,26 @@ $(document).ready(function(){
       content = content.replace(/<style([\s\S]*?)<\/style>/g, '');
       var title = data.parse.title;
 
+      var first_infobox_image = $(content).find('.infobox img').first();
+      if (first_infobox_image.length > 0) {
+        var img_url = first_infobox_image.attr('src');
+        var img_caption = first_infobox_image.attr('alt');
+
+        var img_card = `
+        <div class="card" style="width: 18rem;">
+            <img src="${img_url}" class="card-img-top" alt="${img_caption}">
+          <div class="card-body">
+            <p class="card-text">${img_caption}</p>
+          </div>
+
+        </div>
+        `;
+
+        $('#infobox-image').html(img_card);
+        $('#infobox-image').removeClass('d-none');
+      }
+
+
       $('#title').html(title);
       $('#article').html(content);
 
@@ -56,7 +76,7 @@ $(document).ready(function(){
     error: function (errorMessage) {}
   });
 
-  $('#article').on('click', 'img', function(e){
+  $('#article, #infobox-image').on('click', 'img', function(e){
     e.preventDefault();
     var img_url = $(this).attr('src');
     $('#img_url').val(img_url);
@@ -361,6 +381,7 @@ $(document).ready(function(){
     <div class="pt-3 pb-2 mb-3 border-bottom">
       <h1 id="title" class="h2"></h1>
     </div>
+    <div id="infobox-image" class="float-end ms-3 mb-3 d-none"></div>
     <div id="article"></div>
   </div>
 </div>
