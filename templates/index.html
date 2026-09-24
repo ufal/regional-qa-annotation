@@ -68,8 +68,8 @@
 
                       <p>
                         Your task is to browse Wikipedia and find facts that are
-                        very specific to your country (Czech Republic, Slovakia,
-                        Ukraine). Select the facts that you think many (at least
+                        very specific to your country{% if user.lang|lang_country %}
+                        ({{ user.lang|lang_country }}){% endif %}. Select the facts that you think many (at least
                         roughly tens of thousands of) people in that country
                         know but almost <b>everyone outside the country does not</b>.
                       </p>
@@ -96,9 +96,15 @@
                           </li>
                           <li>
                             Write a question and answer in your language
-                            (Czech, Slovak, Ukrainian) and provide an English
+                            ({{ user.lang|lang_name }}) and provide an English
                             translation of both.
                           </li>
+                          {% if user.lang in ["no", "nn"] %}
+                          <li>
+                            Write in <b>{{ user.lang|lang_name }}</b>, the same written
+                            standard as the Wikipedia articles you are given, not the other one.
+                          </li>
+                          {% endif %}
                           <li>
                             If the Wikipedia page has a photograph (not a computer-drawn scheme)
                             that illustrates the topic and allows you to ask a reasonable question
@@ -110,6 +116,11 @@
                           </li>
                         </ul>
                       </p>
+                      {% if user.lang != "cs" %}
+                      <p>
+                        The examples below come from Czech Wikipedia, but the same principles apply to all languages.
+                      </p>
+                      {% endif %}
                     </div>
                   </div>
                 </div>
@@ -459,7 +470,7 @@
                   <div id="collapseEight" class="accordion-collapse collapse" aria-labelledby="headingEight" data-bs-parent="#instructionAccordion">
                     <div class="accordion-body">
                       <p>
-                        Examples of questions that are regional, but too niche and many people even in the Czech Republic do not know the answer:
+                        Examples of questions that are regional, but too niche and many people even in the country do not know the answer:
                         <ul>
                           <li>Jak je dlouhá turistická trasa E104?<br><i>How long is the hiking trail E104?</i></li>
                           <li>Kdo obdržel roku 1985 Herderovu cenu za výrazný přínos literární komparatistice?<br><i>Who received the Herder Prize in 1985 for an outstanding contribution to comparative literature?</i></li>

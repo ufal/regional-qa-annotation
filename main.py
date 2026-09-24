@@ -50,6 +50,16 @@ def lang_name(lang):
     return Language.get(lang).display_name()
 
 @app.template_filter()
+def lang_country(lang):
+    return {
+        "cs": "Czech Republic",
+        "sk": "Slovakia",
+        "uk": "Ukraine",
+        "no": "Norway",
+        "nn": "Norway",
+    }.get(lang.lower(), "")
+
+@app.template_filter()
 def lang_flag(lang):
     # support czech, slovak, ukrainian, romanian, italian, english and german, return utf-8 flag emojis
     lang = lang.lower()
