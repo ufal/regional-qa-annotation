@@ -14,7 +14,7 @@ from app.config import load_wiki_titles_from_urls, load_wiki_titles
 
 USERS_FILE = "config/users.json"
 
-WIKI_LANGS = ["cs", "sk", "uk", "no", "nn"]
+WIKI_LANGS = ["cs", "sk", "uk", "no", "nn", "hr", "sl", "pl"]
 WIKI_LISTS_SPARQL = {lang: f"data/{lang}_wiki_fixed.txt" for lang in WIKI_LANGS}
 WIKI_LISTS_LOCAL = {lang: f"data/{lang}_articles_only.txt" for lang in WIKI_LANGS}
 
@@ -57,6 +57,9 @@ def lang_country(lang):
         "uk": "Ukraine",
         "no": "Norway",
         "nn": "Norway",
+        "hr": "Croatia",
+        "sl": "Slovenia",
+        "pl": "Poland",
     }.get(lang.lower(), "")
 
 @app.template_filter()
@@ -79,6 +82,12 @@ def lang_flag(lang):
         return "🇩🇪"
     elif lang in ("no", "nn"):
         return "🇳🇴"
+    elif lang == "hr":
+        return "🇭🇷"
+    elif lang == "sl":
+        return "🇸🇮"
+    elif lang == "pl":
+        return "🇵🇱"
     else:
         return ""
 
