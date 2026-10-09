@@ -133,7 +133,7 @@ def index():
     return render_template("dashboard.html", user=user, annotations=annotations)
 
 
-@app.route("/annotate/<string:wiki_title>")
+@app.route("/annotate/<path:wiki_title>")
 @logged_in
 def annotate_wiki(wiki_title):
     wiki_title = wiki_title.encode("latin-1").decode("utf-8")
@@ -185,7 +185,7 @@ def annotate():
         return redirect(url_for("annotate_random"))
 
 
-@app.route("/wiki/<string:wiki_title>")
+@app.route("/wiki/<path:wiki_title>")
 @logged_in
 def wiki(wiki_title):
     # we are including texts from wiki - we can intercept this route to switch
