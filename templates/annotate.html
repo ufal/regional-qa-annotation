@@ -8,7 +8,7 @@
 $(document).ready(function(){
   $.ajax({
     type: "GET",
-    url: "https://{{data.wiki_lang}}.wikipedia.org/w/api.php?action=parse&format=json&prop=text&page={{data.wiki_title}}&callback=?",
+    url: "https://{{data.wiki_lang}}.wikipedia.org/w/api.php?action=parse&format=json&prop=text&page={{data.wiki_title|urlencode}}&callback=?",
     contentType: "application/json; charset=utf-8",
     async: false,
     dataType: "json",
