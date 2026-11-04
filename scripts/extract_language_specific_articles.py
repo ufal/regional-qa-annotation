@@ -10,9 +10,9 @@ from tqdm import tqdm
 # Wikimedia rejects requests without a descriptive User-Agent (T400119).
 HEADERS = {"User-Agent": "regional-qa-annotation/0.1 (https://github.com/ufal/regional-qa-annotation)"}
 
-def get_json(url, params, retries=6):
-    # The API occasionally returns a broken response (e.g. valid JSON with
-    # garbage appended) or a 5xx; retry with exponential backoff.
+def get_json(url, params, retries=10):
+    # Retry transient API failures (5xx, broken JSON) with exponential backoff.
+    # On 429 (rate limit) wait as long as the server asks, or a minute per attempt.
     for attempt in range(retries):
         try:
             response = requests.get(url, params=params, headers=HEADERS, timeout=60)
@@ -22,7 +22,11 @@ def get_json(url, params, retries=6):
             if attempt == retries - 1:
                 raise
             wait = 2 ** attempt
-            print(f"Request failed ({e}), retrying in {wait}s", file=sys.stderr)
+            status = getattr(getattr(e, "response", None), "status_code", None)
+            if status == 429:
+                retry_after = e.response.headers.get("Retry-After", "")
+                wait = int(retry_after) if retry_after.isdigit() else 60 * (attempt + 1)
+            print(f"Request failed ({str(e)[:100]}), retrying in {wait}s", file=sys.stderr)
             time.sleep(wait)
 
 
