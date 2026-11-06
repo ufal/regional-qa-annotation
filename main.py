@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 import hashlib
 import jsonlines
+import os
 import random
 import requests
 import time
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, jsonify, render_template, request, redirect, url_for
 from functools import wraps
 from langcodes import Language
 
+from app import mt
 from app.annotation import Annotation
 from app.user import User, load_users_from_json
-from app.config import load_wiki_titles_from_urls, load_wiki_titles
+from app.config import (
+    LANG_COUNTRY, load_wiki_titles_from_urls, load_wiki_titles)
 
 USERS_FILE = "config/users.json"
 
@@ -18,7 +21,22 @@ WIKI_LANGS = ["cs", "sk", "uk", "no", "nn", "hr", "sl", "pl", "et", "vro"]
 WIKI_LISTS_SPARQL = {lang: f"data/{lang}_wiki_fixed.txt" for lang in WIKI_LANGS}
 WIKI_LISTS_LOCAL = {lang: f"data/{lang}_articles_only.txt" for lang in WIKI_LANGS}
 
+# Languages whose annotators get the "Translate with MT" button. Edit this list
+# to switch the feature on or off per language; the env variable MT_LANGS (a
+# space- or comma-separated list of codes) overrides it without a code change.
+# Note that the button also needs MT_LLM_KEY to be set -- see app/mt.py.
+MT_LANGS = ["cs", "sk", "uk", "no", "nn", "hr", "sl", "pl", "et", "vro"]
+if os.environ.get("MT_LANGS"):
+    MT_LANGS = os.environ["MT_LANGS"].replace(",", " ").split()
+
+
+def mt_available(lang):
+    """Whether the translate button should be offered to this annotator."""
+    return mt.configured() and lang in MT_LANGS
+
 app = Flask(__name__)
+# so that the shared instructions in index.html can mention the button
+app.jinja_env.globals["mt_available"] = mt_available
 
 @app.template_filter()
 def valid(annotations):
@@ -51,18 +69,7 @@ def lang_name(lang):
 
 @app.template_filter()
 def lang_country(lang):
-    return {
-        "cs": "Czech Republic",
-        "sk": "Slovakia",
-        "uk": "Ukraine",
-        "no": "Norway",
-        "nn": "Norway",
-        "hr": "Croatia",
-        "sl": "Slovenia",
-        "pl": "Poland",
-        "et": "Estonia",
-        "vro": "Estonia",
-    }.get(lang.lower(), "")
+    return LANG_COUNTRY.get(lang.lower(), "")
 
 @app.template_filter()
 def lang_flag(lang):
@@ -150,6 +157,7 @@ def annotate_wiki(wiki_title):
         "annotate.html",
         user=user,
         editing=wiki_title in annotations and not annotations[wiki_title].skipped,
+        mt_enabled=mt_available(user.lang),
         data=existing_annotation)
 
 @app.route("/annotate", methods=["GET"])
@@ -168,6 +176,7 @@ def annotate_random():
         "annotate.html",
         user=user,
         editing=random_title in annotations and not annotations[random_title].skipped,
+        mt_enabled=mt_available(user.lang),
         data=existing_annotation)
 
 @app.route("/annotate", methods=["POST"])
@@ -183,6 +192,63 @@ def annotate():
         return redirect(request.form["clicked_url"])
     else:
         return redirect(url_for("annotate_random"))
+
+
+@app.route("/translate", methods=["POST"])
+@logged_in
+def translate():
+    """Translate one question/answer pair into English with the LLM service.
+
+    Called by the annotation form once the annotator has filled in both the
+    question and the answer; the pair goes to the model in a single request so
+    that it has the question as context for the (often very terse) answer.
+    """
+    users = load_users_from_json(USERS_FILE)
+    user = users[request.cookies.get("username")]
+
+    if not mt_available(user.lang):
+        return jsonify({
+            "error": "Machine translation is not available for "
+                     f"{Language.get(user.lang).display_name()}."}), 403
+
+    payload = request.get_json(silent=True) or {}
+    question = (payload.get("question") or "").strip()
+    answer = (payload.get("answer") or "").strip()
+
+    if not question or not answer:
+        return jsonify({
+            "error": "Fill in both the question and the answer first."}), 400
+
+    # timed so that a slow translation can be attributed: `total` minus `api`
+    # is everything this app does, `api` is the wait on the LLM service, and the
+    # token counts say whether the model spent that time thinking
+    started = time.time()
+    stats = {}
+    try:
+        result = mt.translate_qa(
+            question, answer,
+            lang_name=Language.get(user.lang).display_name(),
+            country=LANG_COUNTRY.get(user.lang, ""),
+            wiki_title=(payload.get("wiki_title") or "").replace("_", " "),
+            visual=bool(payload.get("visual")),
+            stats=stats)
+    except RuntimeError as e:
+        app.logger.warning("MT failed for %s (%s) after %.1fs (api %.1fs, "
+                           "%d attempt(s)): %s", user.name, user.lang,
+                           time.time() - started, stats.get("api_seconds", 0.0),
+                           stats.get("attempts", 0), e)
+        return jsonify({"error": f"Translation failed: {e}"}), 502
+
+    app.logger.info(
+        "MT ok for %s (%s): total %.1fs, api %.1fs, %d attempt(s), "
+        "effort %s, tokens %s prompt + %s completion (%s reasoning), finish %s",
+        user.name, user.lang, time.time() - started,
+        stats.get("api_seconds", 0.0), stats.get("attempts", 0),
+        stats.get("effort"), stats.get("prompt_tokens"),
+        stats.get("completion_tokens"), stats.get("reasoning_tokens"),
+        stats.get("finish_reason"))
+
+    return jsonify(result)
 
 
 @app.route("/wiki/<path:wiki_title>")

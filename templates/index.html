@@ -99,6 +99,18 @@
                             ({{ user.lang|lang_name }}) and provide an English
                             translation of both.
                           </li>
+                          {% if mt_available(user.lang) %}
+                          <li>
+                            You can let a machine translate the pair for you:
+                            once the question and the answer are written in
+                            {{ user.lang|lang_name }}, press
+                            <b>Translate with MT</b> and the English fields get
+                            filled in. <b>Always read the result and fix it</b>
+                            &ndash; the machine does not know the local
+                            knowledge the question is about and gets names and
+                            short answers wrong surprisingly often.
+                          </li>
+                          {% endif %}
                           {% if user.lang in ["no", "nn"] %}
                           <li>
                             Write in <b>{{ user.lang|lang_name }}</b>, the same written

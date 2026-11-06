@@ -10,6 +10,9 @@ class Annotation:
   question_en: str
   answer: str
   answer_en: str
+  # whether the English version was produced by machine translation (possibly
+  # post-edited afterwards) rather than written by the annotator from scratch
+  mt_used: bool
 
   img_skipped: bool
   img_url: str
@@ -17,6 +20,7 @@ class Annotation:
   img_question_en: str
   img_answer: str
   img_answer_en: str
+  img_mt_used: bool
 
   time_loaded: float
   time_saved: float
@@ -37,12 +41,14 @@ class Annotation:
       "question_en": "",
       "answer": "",
       "answer_en": "",
+      "mt_used": False,
       "img_skipped": False,
       "img_url": "",
       "img_question": "",
       "img_question_en": "",
       "img_answer": "",
       "img_answer_en": "",
+      "img_mt_used": False,
       "skipped_reason": "",
       "time_loaded": time.time(),
       "time_saved": time.time(),
@@ -69,6 +75,7 @@ class Annotation:
       d["question_en"] = rf["question_en"]
       d["answer"] = rf["answer"]
       d["answer_en"] = rf["answer_en"]
+      d["mt_used"] = rf.get("mt_used") == "1"
 
       d["img_skipped"] = "disable_img" in rf
 
@@ -78,6 +85,7 @@ class Annotation:
         d["img_question_en"] = rf["img_question_en"]
         d["img_answer"] = rf["img_answer"]
         d["img_answer_en"] = rf["img_answer_en"]
+        d["img_mt_used"] = rf.get("img_mt_used") == "1"
 
     d["comment"] = rf["comment"] if "comment" in rf else ""
 
@@ -96,6 +104,7 @@ class Annotation:
       self.question_en = d["question_en"]
       self.answer = d["answer"]
       self.answer_en = d["answer_en"]
+      self.mt_used = d.get("mt_used", False)
 
       self.img_skipped = d["img_skipped"]
       if not self.img_skipped:
@@ -104,6 +113,7 @@ class Annotation:
         self.img_question_en = d["img_question_en"]
         self.img_answer = d["img_answer"]
         self.img_answer_en = d["img_answer_en"]
+        self.img_mt_used = d.get("img_mt_used", False)
     else:
       self.skipped_reason = d["skipped_reason"]
 
@@ -129,6 +139,8 @@ class Annotation:
       d["question_en"] = self.question_en
       d["answer"] = self.answer
       d["answer_en"] = self.answer_en
+      if self.mt_used:
+        d["mt_used"] = True
 
       d["img_skipped"] = self.img_skipped
       if not self.img_skipped:
@@ -137,6 +149,8 @@ class Annotation:
         d["img_question_en"] = self.img_question_en
         d["img_answer"] = self.img_answer
         d["img_answer_en"] = self.img_answer_en
+        if self.img_mt_used:
+          d["img_mt_used"] = True
 
     else:
       d["skipped_reason"] = self.skipped_reason

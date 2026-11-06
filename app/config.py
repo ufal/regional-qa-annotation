@@ -32,3 +32,24 @@ def load_wiki_titles(path, normalized=False):
                 title = normalize_title(title)
             urls.append(title.rstrip("\r\n"))
     return urls
+
+
+# The country each Wikipedia language stands for in this project. Used both in
+# the annotation instructions and in the machine-translation prompt, which tells
+# the model which country the question is about.
+LANG_COUNTRY = {
+    "cs": "Czech Republic",
+    "sk": "Slovakia",
+    "uk": "Ukraine",
+    "no": "Norway",
+    "nn": "Norway",
+    "hr": "Croatia",
+    "sl": "Slovenia",
+    "pl": "Poland",
+    "et": "Estonia",
+    "vro": "Estonia",
+}
+
+
+def lang_country(lang):
+    return LANG_COUNTRY.get(lang.lower(), "")

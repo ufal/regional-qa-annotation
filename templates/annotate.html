@@ -92,6 +92,93 @@ $(document).ready(function(){
   });
 
 
+  {% if mt_enabled %}
+  // ---- machine translation of a question/answer pair -----------------------
+  // One button per pair (plain text, image). The pair is sent in a single
+  // request so the model sees the question as context for the answer.
+  function setupTranslateButton(button) {
+    var $button = $(button);
+    var $srcQ = $('#' + $button.data('question'));
+    var $srcA = $('#' + $button.data('answer'));
+    var $tgtQ = $('#' + $button.data('question-en'));
+    var $tgtA = $('#' + $button.data('answer-en'));
+    var $flag = $('#' + $button.data('flag'));
+    var $status = $('#' + $button.attr('id') + '-status');
+    var visual = $button.data('visual') === true;
+    var busy = false;
+
+    function refresh() {
+      // the point of translating both at once is that each gives the other
+      // context, so the button stays off until both are filled in
+      var ready = $srcQ.val().trim() !== '' && $srcA.val().trim() !== '';
+      $button.prop('disabled', busy || !ready);
+      if (!busy) {
+        $button.attr('title', ready ? '' :
+          'Fill in the question and the answer first.');
+      }
+    }
+
+    function setStatus(text, cls) {
+      $status.text(text).removeClass('text-muted text-danger text-success')
+             .addClass(cls || 'text-muted');
+    }
+
+    $srcQ.add($srcA).on('input', refresh);
+    refresh();
+
+    $button.click(function() {
+      if (busy) {
+        return;
+      }
+
+      if ($tgtQ.val().trim() !== '' || $tgtA.val().trim() !== '') {
+        if (!confirm('This will overwrite the English question and answer. Continue?')) {
+          return;
+        }
+      }
+
+      busy = true;
+      $button.prop('disabled', true);
+      setStatus('Translating\u2026');
+
+      $.ajax({
+        type: 'POST',
+        url: '{{ url_for("translate") }}',
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        data: JSON.stringify({
+          question: $srcQ.val(),
+          answer: $srcA.val(),
+          wiki_title: $('#wiki_title').val(),
+          visual: visual
+        }),
+        success: function(data) {
+          $tgtQ.val(data.question_en).removeClass('is-invalid');
+          $tgtA.val(data.answer_en).removeClass('is-invalid');
+          $flag.val('1');
+          setStatus('Translated by a machine \u2014 please check and correct it.',
+                    'text-success');
+        },
+        error: function(jqXHR) {
+          var msg = 'Translation failed, please try again or translate by hand.';
+          if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
+            msg = jqXHR.responseJSON.error;
+          }
+          setStatus(msg, 'text-danger');
+        },
+        complete: function() {
+          busy = false;
+          refresh();
+        }
+      });
+    });
+  }
+
+  $('.mt-button').each(function() {
+    setupTranslateButton(this);
+  });
+  {% endif %}
+
   function formNotEmpty() {
     var question = $('#question').val();
     var answer = $('#answer').val();
@@ -287,6 +374,11 @@ $(document).ready(function(){
 
       <input type="hidden" id="clicked_url" name="clicked_url" value="">
 
+      <!-- set by the translate buttons so the dataset records which English
+           versions came out of machine translation -->
+      <input type="hidden" id="mt_used" name="mt_used" value="{% if data.mt_used %}1{% endif %}">
+      <input type="hidden" id="img_mt_used" name="img_mt_used" value="{% if not data.img_skipped and data.img_mt_used %}1{% endif %}">
+
       <div class="row">
         <div class="form-group my-3 col">
           <label for="question">Question in {{data.wiki_lang|lang_name}} {{data.wiki_lang|lang_flag}}</label>
@@ -300,6 +392,19 @@ $(document).ready(function(){
           <div class="invalid-feedback">Please provide an answer.</div>
         </div>
       </div>
+
+      {% if mt_enabled %}
+      <div class="d-flex align-items-center flex-wrap gap-2">
+        <button type="button" class="btn btn-sm btn-outline-secondary mt-button"
+                id="mt-text" disabled
+                data-question="question" data-answer="answer"
+                data-question-en="question_en" data-answer-en="answer_en"
+                data-flag="mt_used" data-visual="false">
+          <span class="bi-translate"></span> Translate with MT
+        </button>
+        <small id="mt-text-status" class="text-muted"></small>
+      </div>
+      {% endif %}
 
       <div class="row">
         <div class="form-group my-3 col">
@@ -340,6 +445,19 @@ $(document).ready(function(){
             <div class="invalid-feedback">Please provide a visual answer or check above to skip.</div>
           </div>
         </div>
+
+        {% if mt_enabled %}
+        <div class="d-flex align-items-center flex-wrap gap-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary mt-button"
+                  id="mt-img" disabled
+                  data-question="img_question" data-answer="img_answer"
+                  data-question-en="img_question_en" data-answer-en="img_answer_en"
+                  data-flag="img_mt_used" data-visual="true">
+            <span class="bi-translate"></span> Translate with MT
+          </button>
+          <small id="mt-img-status" class="text-muted"></small>
+        </div>
+        {% endif %}
 
         <div class="row">
           <div class="form-group my-3 col">
