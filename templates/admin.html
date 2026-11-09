@@ -10,15 +10,28 @@
     </div>
 
 
-    <ul class="list-group">
+    <ul class="list-group sortable-list" data-default-sort="valid">
+        <li class="list-group-item d-flex justify-content-between align-items-center bg-light sort-header">
+            <span><a href="#" data-sort-key="name" data-sort-type="text">User<span class="sort-arrow"></span></a></span>
+            <div class="d-inline-flex col-8 justify-content-around">
+                <div class="col-3 text-end"><a href="#" data-sort-key="mt">MT<span class="sort-arrow"></span></a></div>
+                <div class="col-3 text-end"><a href="#" data-sort-key="valid">Valid<span class="sort-arrow"></span></a></div>
+                <div class="col-3 text-end"><a href="#" data-sort-key="skipped">Skipped<span class="sort-arrow"></span></a></div>
+                <div class="col-3 text-end"><a href="#" data-sort-key="all">All<span class="sort-arrow"></span></a></div>
+            </div>
+        </li>
+
         {% for user in users.values() %}
         {% set annotations = user.load_annotations() %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
+        {% set n_mt = annotations|mt_used|length %}
+        <li class="list-group-item d-flex justify-content-between align-items-center sort-row"
+            data-sort-name="{{ user.name }}" data-sort-mt="{{ n_mt }}" data-sort-valid="{{ annotations|valid|length }}"
+            data-sort-skipped="{{ annotations|skipped|length }}" data-sort-all="{{ annotations|length }}">
             <span>{% if user.role == "admin" %}<span title="Admin">👑</span> {% endif %}<a href="{{ url_for('admin_user', username=user.name) }}">{{user.name}}</a> {{ user.lang|lang_flag }}{% set variant = {"no": "Bokmål", "nn": "Nynorsk", "et": "Estonian", "vro": "Võro"}.get(user.lang) %}{% if variant %} ({{ variant }}){% endif %}</span>
 
             <!-- another way to show the statistics would be without badges and with fixed width like this:-->
             <div class="d-inline-flex col-8 justify-content-around">
-                <div class="col-3 text-end">{% set n_mt = annotations|mt_used|length %}{% if n_mt %}{{ n_mt }}
+                <div class="col-3 text-end">{% if n_mt %}{{ n_mt }}
                     <span class="bi-translate text-secondary" title="Machine-translated annotations (text or image)"></span>{% endif %}</div>
 
                 <div class="col-3 text-end">{{annotations|valid|length}} ({{annotations|valid|time_spent|round|int}} s, median: {{annotations|valid|median_time_spent|round|int}} s)
@@ -41,5 +54,7 @@
     </ul>
 
 </div>
+
+<script src="{{ url_for('static', filename='sortable.js') }}"></script>
 
 {% endblock %}
