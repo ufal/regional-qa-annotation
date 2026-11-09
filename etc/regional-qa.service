@@ -1,0 +1,16 @@
+[Unit]
+Description=Gunicorn instance to serve regional-qa app
+After=network.target
+
+
+[Service]
+User=helcl
+Group=www-data
+WorkingDirectory=/var/www/regional-qa-annotation
+Environment="PATH=/var/www/regional-qa-annotation/env/bin"
+Environment="SCRIPT_NAME=/regional-qa"
+#ExecStart=/var/www/regional-qa-annotation/env/bin/gunicorn --workers 3 --bind 0.0.0.0:8080 -m 007 wsgi:app 
+ExecStart=/var/www/regional-qa-annotation/env/bin/gunicorn --workers 3 --bind unix:myproject.sock -m 007 wsgi:app 
+
+[Install]
+WantedBy=multi-user.target
