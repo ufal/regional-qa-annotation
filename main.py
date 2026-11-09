@@ -230,17 +230,30 @@ def translate():
         return jsonify({
             "error": "Fill in both the question and the answer first."}), 400
 
+    wiki_title = payload.get("wiki_title") or ""
+    visual = bool(payload.get("visual"))
     started = time.time()
     stats = {}
+    entry = {
+        "time": started,
+        "wiki_title": wiki_title,
+        "visual": visual,
+        "model": mt._model(),
+        "prompt_version": mt.PROMPT_VERSION,
+        "question": question,
+        "answer": answer,
+    }
     try:
         result = mt.translate_qa(
             question, answer,
             lang_name=Language.get(user.lang).display_name(),
             country=LANG_COUNTRY.get(user.lang, ""),
-            wiki_title=(payload.get("wiki_title") or "").replace("_", " "),
-            visual=bool(payload.get("visual")),
+            wiki_title=wiki_title.replace("_", " "),
+            visual=visual,
             stats=stats)
     except RuntimeError as e:
+        entry.update(error=str(e), stats=stats)
+        log_mt(user, entry)
         app.logger.warning("MT failed for %s (%s) after %.1fs (api %.1fs, "
                            "%d attempt(s)): %s", user.name, user.lang,
                            time.time() - started, stats.get("api_seconds", 0.0),
@@ -256,7 +269,25 @@ def translate():
         stats.get("completion_tokens"), stats.get("reasoning_tokens"),
         stats.get("finish_reason"))
 
-    return jsonify(result)
+    entry.update(result)
+    entry["effort"] = stats.get("effort")
+    # the form sends this back with the annotation, see Annotation.mt
+    record = dict(entry)
+    entry["stats"] = stats
+    log_mt(user, entry)
+
+    return jsonify(dict(result, mt=record))
+
+
+def log_mt(user, entry):
+    """Append one MT call, successful or not, to the user's MT log."""
+    # not .jsonl: the export scripts take every *.jsonl for a user's annotations
+    path = os.path.splitext(user.data_file)[0] + ".mtlog"
+    try:
+        with jsonlines.open(path, "a") as writer:
+            writer.write(entry)
+    except OSError as e:
+        app.logger.warning("could not write the MT log %s: %s", path, e)
 
 
 @app.route("/wiki/<path:wiki_title>")

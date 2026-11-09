@@ -1,3 +1,4 @@
+import json
 import time
 
 
@@ -13,6 +14,9 @@ class Annotation:
   # whether the English version was produced by machine translation (possibly
   # post-edited afterwards) rather than written by the annotator from scratch
   mt_used: bool
+  # what the MT call returned and what it was given, kept for comparing with
+  # the final English; internal, not exported
+  mt: dict
 
   img_skipped: bool
   img_url: str
@@ -21,6 +25,7 @@ class Annotation:
   img_answer: str
   img_answer_en: str
   img_mt_used: bool
+  img_mt: dict
 
   time_loaded: float
   time_saved: float
@@ -76,6 +81,7 @@ class Annotation:
       d["answer"] = rf["answer"]
       d["answer_en"] = rf["answer_en"]
       d["mt_used"] = rf.get("mt_used") == "1"
+      d["mt"] = _parse_mt(rf.get("mt"))
 
       d["img_skipped"] = "disable_img" in rf
 
@@ -86,6 +92,7 @@ class Annotation:
         d["img_answer"] = rf["img_answer"]
         d["img_answer_en"] = rf["img_answer_en"]
         d["img_mt_used"] = rf.get("img_mt_used") == "1"
+        d["img_mt"] = _parse_mt(rf.get("img_mt"))
 
     d["comment"] = rf["comment"] if "comment" in rf else ""
 
@@ -105,6 +112,7 @@ class Annotation:
       self.answer = d["answer"]
       self.answer_en = d["answer_en"]
       self.mt_used = d.get("mt_used", False)
+      self.mt = d.get("mt")
 
       self.img_skipped = d["img_skipped"]
       if not self.img_skipped:
@@ -114,6 +122,7 @@ class Annotation:
         self.img_answer = d["img_answer"]
         self.img_answer_en = d["img_answer_en"]
         self.img_mt_used = d.get("img_mt_used", False)
+        self.img_mt = d.get("img_mt")
     else:
       self.skipped_reason = d["skipped_reason"]
 
@@ -141,6 +150,8 @@ class Annotation:
       d["answer_en"] = self.answer_en
       if self.mt_used:
         d["mt_used"] = True
+      if self.mt:
+        d["mt"] = self.mt
 
       d["img_skipped"] = self.img_skipped
       if not self.img_skipped:
@@ -151,6 +162,8 @@ class Annotation:
         d["img_answer_en"] = self.img_answer_en
         if self.img_mt_used:
           d["img_mt_used"] = True
+        if self.img_mt:
+          d["img_mt"] = self.img_mt
 
     else:
       d["skipped_reason"] = self.skipped_reason
@@ -159,3 +172,11 @@ class Annotation:
       d["comment"] = self.comment
 
     return d
+
+
+def _parse_mt(value):
+  # a malformed value from the form must not lose the annotation itself
+  try:
+    return json.loads(value) if value else None
+  except ValueError:
+    return None

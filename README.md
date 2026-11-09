@@ -37,6 +37,18 @@ Whether the English text came out of MT is recorded in the data: the keys
 used the button for that pair (possibly editing the output afterwards), so
 older records and hand-translated ones are unchanged.
 
+For analysing the MT use later (e.g. whether the output was post-edited), two
+more things are stored; both are internal and not exported:
+
+- `mt` / `img_mt` in the record: the last MT call for that pair — the source
+  question and answer it was given, its English output, model, effort, prompt
+  version and time. Comparing it with the final fields shows post-editing, and
+  with the final source fields whether the source changed after MT.
+- `data/<user>.mtlog`: one JSON line per MT call, including failed ones and
+  ones never saved, with the same fields plus the article, timing and token
+  counts. It is deliberately not `.jsonl`, which the export scripts would take
+  for annotations.
+
 ### Which languages
 
 `MT_LANGS` in `main.py` lists the languages the button is offered in. It is

@@ -226,6 +226,9 @@ def _extract_json_object(text):
     raise RuntimeError("the reply was cut off before the JSON was complete")
 
 
+# bump when SYSTEM_PROMPT or build_prompt() changes; stored with every MT output
+PROMPT_VERSION = 1
+
 SYSTEM_PROMPT = (
     "You are a professional translator preparing a multilingual "
     "question-answering dataset. You translate faithfully and literally, you "

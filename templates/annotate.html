@@ -101,6 +101,7 @@ $(document).ready(function(){
     var $tgtQ = $('#' + $button.data('question-en'));
     var $tgtA = $('#' + $button.data('answer-en'));
     var $flag = $('#' + $button.data('flag'));
+    var $record = $('#' + $button.data('record'));
     var $status = $('#' + $button.attr('id') + '-status');
     var visual = $button.data('visual') === true;
     var busy = false;
@@ -152,6 +153,9 @@ $(document).ready(function(){
           $tgtQ.val(data.question_en).removeClass('is-invalid');
           $tgtA.val(data.answer_en).removeClass('is-invalid');
           $flag.val('1');
+          if (data.mt) {
+            $record.val(JSON.stringify(data.mt));
+          }
           setStatus('Translated by a machine \u2014 please check and correct it.',
                     'text-success');
         },
@@ -374,6 +378,9 @@ $(document).ready(function(){
            versions came out of machine translation -->
       <input type="hidden" id="mt_used" name="mt_used" value="{% if data.mt_used %}1{% endif %}">
       <input type="hidden" id="img_mt_used" name="img_mt_used" value="{% if not data.img_skipped and data.img_mt_used %}1{% endif %}">
+      <!-- the last MT output, carried over so that re-saving an annotation keeps it -->
+      <input type="hidden" id="mt" name="mt" value='{% if data.mt %}{{ data.mt|tojson }}{% endif %}'>
+      <input type="hidden" id="img_mt" name="img_mt" value='{% if not data.img_skipped and data.img_mt %}{{ data.img_mt|tojson }}{% endif %}'>
 
       <div class="row">
         <div class="form-group my-3 col">
@@ -395,7 +402,7 @@ $(document).ready(function(){
                 id="mt-text" disabled
                 data-question="question" data-answer="answer"
                 data-question-en="question_en" data-answer-en="answer_en"
-                data-flag="mt_used" data-visual="false">
+                data-flag="mt_used" data-record="mt" data-visual="false">
           <span class="bi-translate"></span> Translate with MT
         </button>
         <small id="mt-text-status" class="text-muted"></small>
@@ -448,7 +455,7 @@ $(document).ready(function(){
                   id="mt-img" disabled
                   data-question="img_question" data-answer="img_answer"
                   data-question-en="img_question_en" data-answer-en="img_answer_en"
-                  data-flag="img_mt_used" data-visual="true">
+                  data-flag="img_mt_used" data-record="img_mt" data-visual="true">
             <span class="bi-translate"></span> Translate with MT
           </button>
           <small id="mt-img-status" class="text-muted"></small>
