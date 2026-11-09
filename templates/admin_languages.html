@@ -1,0 +1,35 @@
+{% extends "index.html" %}
+
+{% block content %}
+
+<div class="container">
+    <h2 class="mt-5">Languages</h2>
+    <p><a href="{{ url_for('admin') }}">By user</a> &middot; Test accounts (<code>test_*</code>) and <code>admin</code> are not counted.</p>
+
+    <ul class="list-group">
+        {% for lang, stats in langs.items() %}
+        {% set annotations = stats.annotations %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>{{ lang|lang_flag }} {{ lang|lang_name }}{% set variant = {"no": "Bokmål", "nn": "Nynorsk", "et": "Estonian", "vro": "Võro"}.get(lang) %}{% if variant %} ({{ variant }}){% endif %}
+                <span class="small text-secondary ms-2">{{ stats.users }} <span class="bi-people-fill" title="Users"></span></span></span>
+
+            <div class="d-inline-flex col-8 justify-content-around">
+                <div class="col-3 text-end">{% set n_mt = annotations|mt_used|length %}{% if n_mt %}{{ n_mt }}
+                    <span class="bi-translate text-secondary" title="Machine-translated annotations (text or image)"></span>{% endif %}</div>
+
+                <div class="col-3 text-end">{{annotations|valid|length}} ({{annotations|valid|time_spent|round|int}} s, median: {{annotations|valid|median_time_spent|round|int}} s)
+                     <span class="bi-check-circle-fill text-success" title="Valid annotations"></span></div>
+
+                <div class="col-3 text-end">{{annotations|skipped|length}} ({{annotations|skipped|time_spent|round|int}} s, median: {{annotations|skipped|median_time_spent|round|int}} s)
+                    <span class="bi-fast-forward-fill text-warning" title="Skipped annotations"></span></div>
+
+                <div class="col-3 text-end">{{annotations|length}} ({{annotations|time_spent|round|int}} s, median: {{annotations|median_time_spent|round|int}} s)
+                    <span class="bi-archive-fill text-secondary" title="All annotations"></span></div>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+
+</div>
+
+{% endblock %}

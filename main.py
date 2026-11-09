@@ -284,6 +284,31 @@ def admin_user(username):
     else:
         return redirect(url_for("index"))
 
+def counted_in_stats(user):
+    # test accounts and the main admin account are not real annotators
+    return not (user.name.startswith("test_") or user.name == "admin")
+
+@app.route("/admin/languages")
+@logged_in
+def admin_languages():
+    users = load_users_from_json(USERS_FILE)
+    user = users[request.cookies.get("username")]
+    if user.role == "admin":
+        langs = {}
+        for u in users.values():
+            if not counted_in_stats(u):
+                continue
+            stats = langs.setdefault(u.lang, {"users": 0, "annotations": {}})
+            stats["users"] += 1
+            # keyed by user too, so that an article annotated by two users counts twice
+            for title, a in u.load_annotations().items():
+                stats["annotations"][(u.name, title)] = a
+        order = {lang: i for i, lang in enumerate(WIKI_LANGS)}
+        langs = dict(sorted(langs.items(), key=lambda kv: order.get(kv[0], len(order))))
+        return render_template("admin_languages.html", user=user, langs=langs)
+    else:
+        return redirect(url_for("index"))
+
 
 @app.route("/login", methods=["POST", "GET"])
 def login():
