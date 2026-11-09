@@ -31,7 +31,6 @@ if os.environ.get("MT_LANGS"):
 
 
 def mt_available(lang):
-    """Whether the translate button should be offered to this annotator."""
     return mt.configured() and lang in MT_LANGS
 
 app = Flask(__name__)
@@ -197,12 +196,7 @@ def annotate():
 @app.route("/translate", methods=["POST"])
 @logged_in
 def translate():
-    """Translate one question/answer pair into English with the LLM service.
-
-    Called by the annotation form once the annotator has filled in both the
-    question and the answer; the pair goes to the model in a single request so
-    that it has the question as context for the (often very terse) answer.
-    """
+    """Translate one question/answer pair into English with the LLM service."""
     users = load_users_from_json(USERS_FILE)
     user = users[request.cookies.get("username")]
 
@@ -219,9 +213,6 @@ def translate():
         return jsonify({
             "error": "Fill in both the question and the answer first."}), 400
 
-    # timed so that a slow translation can be attributed: `total` minus `api`
-    # is everything this app does, `api` is the wait on the LLM service, and the
-    # token counts say whether the model spent that time thinking
     started = time.time()
     stats = {}
     try:

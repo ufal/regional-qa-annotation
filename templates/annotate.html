@@ -94,8 +94,6 @@ $(document).ready(function(){
 
   {% if mt_enabled %}
   // ---- machine translation of a question/answer pair -----------------------
-  // One button per pair (plain text, image). The pair is sent in a single
-  // request so the model sees the question as context for the answer.
   function setupTranslateButton(button) {
     var $button = $(button);
     var $srcQ = $('#' + $button.data('question'));
@@ -108,8 +106,6 @@ $(document).ready(function(){
     var busy = false;
 
     function refresh() {
-      // the point of translating both at once is that each gives the other
-      // context, so the button stays off until both are filled in
       var ready = $srcQ.val().trim() !== '' && $srcA.val().trim() !== '';
       $button.prop('disabled', busy || !ready);
       if (!busy) {

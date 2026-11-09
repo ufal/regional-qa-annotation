@@ -34,9 +34,7 @@ def load_wiki_titles(path, normalized=False):
     return urls
 
 
-# The country each Wikipedia language stands for in this project. Used both in
-# the annotation instructions and in the machine-translation prompt, which tells
-# the model which country the question is about.
+# The country each Wikipedia language stands for (instructions and MT prompt).
 LANG_COUNTRY = {
     "cs": "Czech Republic",
     "sk": "Slovakia",

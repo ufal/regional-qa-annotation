@@ -1,10 +1,6 @@
 """Machine translation of a question/answer pair via an OpenAI-compatible LLM API.
 
-The annotation tool only ever needs one short completion at a time, triggered by
-a human clicking a button, so this is a deliberately small synchronous client
-built on the standard library -- no new dependency, no thread pool.
-
-Configured entirely from the environment so no credential ever enters a file:
+Configured from the environment:
 
     MT_LLM_BASE    base URL of the OpenAI-compatible API (default
                    https://ai.ufal.mff.cuni.cz/api -- Open WebUI serves the
@@ -22,9 +18,7 @@ Configured entirely from the environment so no credential ever enters a file:
                    dominate the wall clock on a task this short. Set it to
                    "medium"/"high" for more deliberation, or to the empty string
                    to leave the server default alone.
-    MT_LLM_TIMEOUT seconds to wait for one completion (default 120). An
-                   annotator is staring at a spinner, so this is much shorter
-                   than one would use in a batch job.
+    MT_LLM_TIMEOUT seconds to wait for one completion (default 120).
 
 `python3 -m app.mt` checks the credentials and lists the model ids.
 """
@@ -63,19 +57,13 @@ def _timeout():
 def _effort():
     """Reasoning effort to ask for; "" leaves the server default alone.
 
-    This is the single biggest lever on how long a translation takes. gpt-oss is
-    a reasoning model, and at its default effort it will happily spend a few
-    thousand thinking tokens deliberating over a one-line translation -- that
-    thinking is generated token by token, so it is most of the wall clock. The
-    task here is short, bounded and needs no deliberation, so we ask for "low".
-    A server that does not know the parameter is detected and retried without
-    it, see chat().
+    "low" by default: thinking tokens are most of the latency. A server that
+    rejects the parameter is retried without it, see chat().
     """
     return os.environ.get("MT_LLM_EFFORT", "low").strip()
 
 
 def configured():
-    """True when a key is set, i.e. when the translate button can work at all."""
     return bool(_key())
 
 
@@ -106,8 +94,7 @@ def chat(messages, temperature=0.0, max_tokens=None, retries=2, stats=None):
     If `stats` is a dict it is filled in with what the round trip cost, so the
     caller can log where the time went: `api_seconds` (summed over attempts),
     `attempts`, `finish_reason`, `effort`, and the token counts the server
-    reported, including `reasoning_tokens` where it reports them. The thinking
-    tokens are the thing to watch -- see _effort().
+    reported, including `reasoning_tokens` where it reports them.
 
     Raises RuntimeError with a message meant to be shown to the annotator.
     """
