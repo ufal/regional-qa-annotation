@@ -49,13 +49,9 @@ without a code change.
 `app/mt.py` talks to any OpenAI-compatible chat API — in our case the UFAL
 gpt-oss instance.
 
-The API key is passed to the service as the systemd credential `mt-llm-key`.
-Keep the key in a file readable only by root and add to the `[Service]`
-section of the unit:
-
-```ini
-LoadCredential=mt-llm-key:/etc/regional-qa/mt-llm-key
-```
+The API key is passed to the service as the systemd credential `mt-llm-key`,
+loaded by the `LoadCredential=` line in `etc/regional-qa.service` from a
+root-only file; see `etc/README.md` for setting it up.
 
 When `MT_LANGS` is not empty, the key is read once at startup from
 `$CREDENTIALS_DIRECTORY/mt-llm-key`, or from the env variable `MT_LLM_KEY` if

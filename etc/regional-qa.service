@@ -9,6 +9,10 @@ Group=www-data
 WorkingDirectory=/var/www/regional-qa-annotation
 Environment="PATH=/var/www/regional-qa-annotation/env/bin"
 Environment="SCRIPT_NAME=/regional-qa"
+LoadCredential=mt-llm-key:/etc/regional-qa/mt-llm-key
+Environment="MT_LANGS=hr,sl"
+Environment="MT_LLM_BASE=https://llm.ai.e-infra.cz/v1"
+Environment="MT_LLM_MODEL=gpt-oss-120b"
 #ExecStart=/var/www/regional-qa-annotation/env/bin/gunicorn --workers 3 --bind 0.0.0.0:8080 -m 007 wsgi:app 
 ExecStart=/var/www/regional-qa-annotation/env/bin/gunicorn --workers 3 --bind unix:myproject.sock -m 007 wsgi:app 
 
