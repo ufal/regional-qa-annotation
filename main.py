@@ -24,14 +24,17 @@ WIKI_LISTS_LOCAL = {lang: f"data/{lang}_articles_only.txt" for lang in WIKI_LANG
 # Languages whose annotators get the "Translate with MT" button. None by default;
 # add codes here to switch the feature on per language, or set the env variable
 # MT_LANGS (a space- or comma-separated list of codes) to override this list
-# without a code change. The button also needs the API key -- see app/mt.py.
+# without a code change. When the list is not empty, the API key is loaded at
+# startup and a missing key stops the app -- see app/mt.py.
 MT_LANGS = []
 if os.environ.get("MT_LANGS"):
     MT_LANGS = os.environ["MT_LANGS"].replace(",", " ").split()
+if MT_LANGS:
+    mt.load_key()
 
 
 def mt_available(lang):
-    return mt.configured() and lang in MT_LANGS
+    return lang in MT_LANGS
 
 app = Flask(__name__)
 # so that the shared instructions in index.html can mention the button

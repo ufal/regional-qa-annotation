@@ -1,13 +1,17 @@
 """Machine translation of a question/answer pair via an OpenAI-compatible LLM API.
 
-Configured from the environment:
+The API key is read once, by load_key() at startup: from the systemd
+credential `mt-llm-key` ($CREDENTIALS_DIRECTORY/mt-llm-key, see LoadCredential=
+in the service unit), or else from the env variable MT_LLM_KEY.
+
+Everything else is configured from the environment:
 
     MT_LLM_BASE    base URL of the OpenAI-compatible API (default
                    https://ai.ufal.mff.cuni.cz/api -- Open WebUI serves the
                    OpenAI-compatible API under /api, not /v1). A bare host gets
                    /v1/chat/completions appended; a base already ending in /v1
                    or /api is used as given.
-    MT_LLM_KEY     bearer token. Without it the feature stays switched off.
+    MT_LLM_KEY     bearer token, fallback for the mt-llm-key credential.
     MT_LLM_MODEL   model id as /models reports it, which need not match the
                    name shown in a web UI.
     MT_LLM_MAXTOK  completion budget (default 2048). Generous because gpt-oss
@@ -32,14 +36,39 @@ import urllib.request
 
 
 DEFAULT_BASE = "https://ai.ufal.mff.cuni.cz/api"
+CREDENTIAL_NAME = "mt-llm-key"
+
+_api_key = ""
 
 
 def _base():
     return os.environ.get("MT_LLM_BASE", DEFAULT_BASE).rstrip("/")
 
 
+def load_key():
+    """Read the API key: the systemd credential, else the env variable.
+
+    Raises RuntimeError when neither is set.
+    """
+    global _api_key
+    cred_dir = os.environ.get("CREDENTIALS_DIRECTORY")
+    if cred_dir:
+        try:
+            with open(os.path.join(cred_dir, CREDENTIAL_NAME), encoding="utf8") as f:
+                _api_key = f.read().strip()
+        except OSError:
+            pass
+    if not _api_key:
+        _api_key = os.environ.get("MT_LLM_KEY", "").strip()
+    if not _api_key:
+        raise RuntimeError(
+            f"MT is enabled but there is no API key: neither the "
+            f"{CREDENTIAL_NAME} credential nor MT_LLM_KEY is set")
+    return _api_key
+
+
 def _key():
-    return os.environ.get("MT_LLM_KEY", "")
+    return _api_key
 
 
 def _model():
@@ -61,10 +90,6 @@ def _effort():
     rejects the parameter is retried without it, see chat().
     """
     return os.environ.get("MT_LLM_EFFORT", "low").strip()
-
-
-def configured():
-    return bool(_key())
 
 
 def endpoint():
@@ -263,10 +288,6 @@ def translate_qa(question, answer, lang_name, country="", wiki_title="",
     Returns {"question_en": str, "answer_en": str}; raises RuntimeError with a
     message suitable for showing to the annotator.
     """
-    if not configured():
-        raise RuntimeError("the translation service is not configured "
-                           "(MT_LLM_KEY is not set)")
-
     text = chat([
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": build_prompt(
@@ -285,13 +306,15 @@ def translate_qa(question, answer, lang_name, country="", wiki_title="",
 
 if __name__ == "__main__":
     # credential check: list the models the key can reach
+    try:
+        load_key()
+    except RuntimeError as e:
+        sys.exit(str(e))
     print(f"base     {_base()}")
     print(f"endpoint {endpoint()}")
-    print(f"key      {'set, ' + str(len(_key())) + ' chars' if _key() else 'NOT SET'}")
+    print(f"key      set, {len(_key())} chars")
     print(f"model    {_model()}")
     print(f"maxtok   {_maxtok()}")
-    if not _key():
-        sys.exit("set MT_LLM_KEY first")
     try:
         data = models()
     except Exception as e:                        # noqa: BLE001

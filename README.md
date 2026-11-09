@@ -47,19 +47,39 @@ without a code change.
 ### The LLM service
 
 `app/mt.py` talks to any OpenAI-compatible chat API — in our case the UFAL
-gpt-oss instance. It is configured from the environment so no credential ends
-up in a file; set these in the gunicorn service unit:
+gpt-oss instance.
+
+The API key is passed to the service as the systemd credential `mt-llm-key`.
+Keep the key in a file readable only by root and add to the `[Service]`
+section of the unit:
+
+```ini
+LoadCredential=mt-llm-key:/etc/regional-qa/mt-llm-key
+```
+
+When `MT_LANGS` is not empty, the key is read once at startup from
+`$CREDENTIALS_DIRECTORY/mt-llm-key`, or from the env variable `MT_LLM_KEY` if
+the credential is not there. **If there is no key, the app refuses to start.**
+`systemctl start` does not report that, so after changing the key or
+`MT_LANGS` check the service:
+
+```sh
+systemctl restart regional-qa && systemctl status regional-qa
+```
+
+The rest is set with environment variables in the unit:
 
 | variable | meaning |
 | --- | --- |
-| `MT_LLM_KEY` | bearer token. **Without it the button is not shown at all.** |
+| `MT_LLM_KEY` | bearer token, fallback for the `mt-llm-key` credential |
 | `MT_LLM_BASE` | API base, default `https://ai.ufal.mff.cuni.cz/api` (Open WebUI serves the OpenAI-compatible API under `/api`, not `/v1`) |
 | `MT_LLM_MODEL` | model id as `/models` reports it, default `gpt-oss-120b` |
 | `MT_LLM_EFFORT` | reasoning effort, default `low`. **This is the main lever on how long a translation takes** — see below. Empty string leaves the server default |
 | `MT_LLM_MAXTOK` | completion budget, default 2048. gpt-oss is a reasoning model and its thinking tokens come out of the same budget, so a small value truncates the reply |
 | `MT_LLM_TIMEOUT` | seconds to wait for one completion, default 120 |
 
-To check the credentials and see which model ids the key can reach:
+To check the key and see which model ids it can reach (outside the service,
+the key comes from the env variable):
 
 ```sh
 MT_LLM_KEY=... env/bin/python -m app.mt
