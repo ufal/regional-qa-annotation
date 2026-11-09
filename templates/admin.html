@@ -4,8 +4,10 @@
 
 <div class="container">
     <!-- show list of users -->
-    <h2 class="mt-5">Users</h2>
-    <p><a href="{{ url_for('admin_languages') }}">By language</a></p>
+    <div class="d-flex align-items-baseline gap-3 mt-5 mb-3">
+        <h4 class="mb-0">Users</h4>
+        <a href="{{ url_for('admin_languages') }}">By language</a>
+    </div>
 
 
     <ul class="list-group">
