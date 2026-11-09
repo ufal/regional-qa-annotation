@@ -55,6 +55,10 @@ def mt_used(annotations):
         getattr(v, "mt_used", False) or getattr(v, "img_mt_used", False))}
 
 @app.template_filter()
+def with_image(annotations):
+    return {k: v for k, v in annotations.items() if not v.skipped and not v.img_skipped}
+
+@app.template_filter()
 def median_time_spent(annotations):
     times = [a.time_saved - a.time_loaded for a in annotations.values()]
     if not times:

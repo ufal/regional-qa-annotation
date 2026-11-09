@@ -7,6 +7,10 @@
     <div class="d-flex align-items-baseline gap-3 mt-5 mb-3">
         <h4 class="mb-0">Users</h4>
         <a href="{{ url_for('admin_languages') }}">By language</a>
+        <div class="form-check form-switch ms-auto">
+            <input class="form-check-input" type="checkbox" role="switch" id="show-times">
+            <label class="form-check-label" for="show-times">Show times</label>
+        </div>
     </div>
 
 
@@ -34,13 +38,14 @@
                 <div class="col-3 text-end">{% if n_mt %}{{ n_mt }}
                     <span class="bi-translate text-secondary" title="Machine-translated annotations (text or image)"></span>{% endif %}</div>
 
-                <div class="col-3 text-end">{{annotations|valid|length}} ({{annotations|valid|time_spent|round|int}} s, median: {{annotations|valid|median_time_spent|round|int}} s)
-                     <span class="bi-check-circle-fill text-success" title="Valid annotations"></span></div>
+                <div class="col-3 text-end">{{annotations|valid|length}} <span class="stat-time d-none">({{annotations|valid|time_spent|round|int}} s, median: {{annotations|valid|median_time_spent|round|int}} s)</span>
+                     <span class="bi-check-circle-fill text-success" title="Valid annotations"></span>
+                     <span class="ms-2">{{annotations|with_image|length}} <span class="bi-image text-success" title="Valid annotations with an image question"></span></span></div>
 
-                <div class="col-3 text-end">{{annotations|skipped|length}} ({{annotations|skipped|time_spent|round|int}} s, median: {{annotations|skipped|median_time_spent|round|int}} s)
+                <div class="col-3 text-end">{{annotations|skipped|length}} <span class="stat-time d-none">({{annotations|skipped|time_spent|round|int}} s, median: {{annotations|skipped|median_time_spent|round|int}} s)</span>
                     <span class="bi-fast-forward-fill text-warning" title="Skipped annotations"></span></div>
 
-                <div class="col-3 text-end">{{annotations|length}} ({{annotations|time_spent|round|int}} s, median: {{annotations|median_time_spent|round|int}} s)
+                <div class="col-3 text-end">{{annotations|length}} <span class="stat-time d-none">({{annotations|time_spent|round|int}} s, median: {{annotations|median_time_spent|round|int}} s)</span>
                     <span class="bi-archive-fill text-secondary" title="All annotations"></span></div>
 
                 <!-- {# <div class="col-2 text-end">{{annotations|valid|time_spent|round|int}} s <span class="bi-clock-fill text-success" title="Time spent"></span></div>
@@ -56,5 +61,6 @@
 </div>
 
 <script src="{{ url_for('static', filename='sortable.js') }}"></script>
+<script src="{{ url_for('static', filename='admin.js') }}"></script>
 
 {% endblock %}
