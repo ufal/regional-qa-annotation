@@ -49,6 +49,12 @@ def skipped(annotations):
     return {k: v for k, v in annotations.items() if v.skipped}
 
 @app.template_filter()
+def mt_used(annotations):
+    # the flags are missing on skipped pairs and on records from before MT
+    return {k: v for k, v in annotations.items() if not v.skipped and (
+        getattr(v, "mt_used", False) or getattr(v, "img_mt_used", False))}
+
+@app.template_filter()
 def median_time_spent(annotations):
     times = [a.time_saved - a.time_loaded for a in annotations.values()]
     if not times:
