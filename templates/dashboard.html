@@ -94,6 +94,8 @@
     <span class="small mx-1">{{annotation.time_saved|format_datetime }} </span>
     <div class="small mx-1" style="min-width: 4em;"> ({{annotation.time_elapsed_seconds}} s) </div>
     
+    {% set mt_parts = (["text"] if annotation.mt_used else []) + (["image"] if annotation.img_mt_used else []) %}
+    <span class="bi-translate text-secondary mx-1 {{ 'visible' if mt_parts else 'invisible'}}" title="Machine-translated: {{ mt_parts|join(' and ') }}"></span>
     <span class="bi-dice-{{range(1,7)|random}}  text-secondary mx-1 {{ 'visible' if annotation.random_page else 'invisible'}}" title="Random page"> </span>
     <span class="bi-check-circle-fill text-success mx-1" title="completed"></span>
 
