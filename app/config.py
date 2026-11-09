@@ -46,6 +46,9 @@ LANG_COUNTRY = {
     "pl": "Poland",
     "et": "Estonia",
     "vro": "Estonia",
+    "hu": "Hungary",
+    "ro": "Romania",
+    "bg": "Bulgaria",
 }
 
 
