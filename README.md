@@ -39,7 +39,8 @@ older records and hand-translated ones are unchanged.
 
 ### Which languages
 
-`MT_LANGS` in `main.py` lists the languages the button is offered in. The
+`MT_LANGS` in `main.py` lists the languages the button is offered in. It is
+empty by default, so MT is off for every language until switched on. The
 environment variable `MT_LANGS` (comma- or space-separated codes) overrides it
 without a code change.
 

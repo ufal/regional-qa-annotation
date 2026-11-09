@@ -21,11 +21,11 @@ WIKI_LANGS = ["cs", "sk", "uk", "no", "nn", "hr", "sl", "pl", "et", "vro"]
 WIKI_LISTS_SPARQL = {lang: f"data/{lang}_wiki_fixed.txt" for lang in WIKI_LANGS}
 WIKI_LISTS_LOCAL = {lang: f"data/{lang}_articles_only.txt" for lang in WIKI_LANGS}
 
-# Languages whose annotators get the "Translate with MT" button. Edit this list
-# to switch the feature on or off per language; the env variable MT_LANGS (a
-# space- or comma-separated list of codes) overrides it without a code change.
-# Note that the button also needs MT_LLM_KEY to be set -- see app/mt.py.
-MT_LANGS = ["cs", "sk", "uk", "no", "nn", "hr", "sl", "pl", "et", "vro"]
+# Languages whose annotators get the "Translate with MT" button. None by default;
+# add codes here to switch the feature on per language, or set the env variable
+# MT_LANGS (a space- or comma-separated list of codes) to override this list
+# without a code change. The button also needs the API key -- see app/mt.py.
+MT_LANGS = []
 if os.environ.get("MT_LANGS"):
     MT_LANGS = os.environ["MT_LANGS"].replace(",", " ").split()
 
