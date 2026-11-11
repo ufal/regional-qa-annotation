@@ -1,0 +1,131 @@
+{% extends "index.html" %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.6.1/dist/chart.umd.js"
+        integrity="sha384-lm7tNiW/3uF4tLujoEeoR94zIODe3hCWqRtW0UgxpQE3QslzOhlD22UqQk1tSBhB"
+        crossorigin="anonymous"></script>
+<style>
+  /* heatmap shades, light to dark: one hue, sequential (levels 1-5) */
+  .act-1 { background: #b7d3f6; }
+  .act-2 { background: #86b6ef; }
+  .act-3 { background: #5598e7; }
+  .act-4 { background: #2a78d6; color: #fff; }
+  .act-5 { background: #184f95; color: #fff; }
+  /* active in the period, but nothing newly completed */
+  .act-0 { background: #f0efec; }
+
+  .activity-table { border-collapse: separate; border-spacing: 2px; font-size: 0.8rem; }
+  .activity-table td.cell { min-width: 2.4em; height: 1.8em; text-align: center; border-radius: 3px; }
+  .activity-table th.period { font-weight: normal; color: #6c757d; text-align: center; white-space: nowrap; }
+  .activity-table .name { position: sticky; left: 0; background: #fff; white-space: nowrap; padding-right: 0.75em; }
+  .activity-table .total { padding-left: 0.75em; text-align: end; white-space: nowrap; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="d-flex align-items-baseline flex-wrap gap-3 mt-5 mb-3">
+        <h4 class="mb-0">Activity</h4>
+        <a href="{{ url_for('admin') }}">By user</a>
+        <a href="{{ url_for('admin_languages') }}">By language</a>
+
+        <form method="get" class="d-flex align-items-baseline gap-2 ms-auto">
+            <input type="hidden" name="period" value="{{ period }}">
+            <select name="lang" class="form-select form-select-sm" onchange="this.form.submit()">
+                {% for l in langs %}
+                <option value="{{ l }}" {% if l == lang %}selected{% endif %}>{{ l|lang_flag }} {{ l|lang_name }}</option>
+                {% endfor %}
+                <option value="all" {% if lang == "all" %}selected{% endif %}>All languages</option>
+            </select>
+        </form>
+        <div class="btn-group btn-group-sm">
+            {% for p in period_names %}
+            <a href="{{ url_for('admin_activity', lang=lang, period=p) }}"
+               class="btn {{ 'btn-primary' if p == period else 'btn-outline-primary' }}">{{ p }}</a>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if not rows %}
+    <p class="text-muted">No annotations yet.</p>
+    {% else %}
+
+    <h6 class="text-secondary">Completed annotations per {{ period }}</h6>
+    <div style="height: 180px" class="mb-4"><canvas id="totals-chart"></canvas></div>
+
+    <h6 class="text-secondary">Completed annotations per annotator and {{ period }}</h6>
+    <div class="overflow-auto mb-2">
+        <table class="activity-table">
+            <thead>
+                <tr>
+                    <th class="name"></th>
+                    {% for d, short, full in periods %}
+                    <th class="period" title="{{ full }}">{{ short }}</th>
+                    {% endfor %}
+                    <th class="total">total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in rows %}
+                <tr>
+                    <td class="name">
+                        <a href="{{ url_for('admin_user', username=r.user.name) }}">{{ r.user.name }}</a>
+                        {% if lang == "all" %}{{ r.user.lang|lang_flag }}{% endif %}
+                    </td>
+                    {% for d, short, full in periods %}
+                    {% set c = r.cells.get(d) %}
+                    {% if c %}
+                    <td class="cell act-{{ c.level }}"
+                        title="{{ r.user.name }}, {{ full }}: {{ c.completed }} completed, {{ c.edits }} re-edits, {{ c.skipped }} skipped, {{ (c.seconds / 60)|round|int }} min">{{ c.completed or "" }}</td>
+                    {% else %}
+                    <td class="cell"></td>
+                    {% endif %}
+                    {% endfor %}
+                    <td class="total">{{ r.total }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="small text-muted">
+        Darker means more articles completed for the first time; grey means active (re-edits or skips) without completing anything new.
+        Hover over a cell for details.
+    </p>
+    {% endif %}
+
+</div>
+
+{% if rows %}
+<script>
+  $(function() {
+    var periods = {{ periods|map(attribute=2)|list|tojson }};
+    new Chart(document.getElementById('totals-chart'), {
+      type: 'bar',
+      data: {
+        labels: {{ periods|map(attribute=1)|list|tojson }},
+        datasets: [{
+          label: 'completed',
+          data: {{ totals|tojson }},
+          backgroundColor: '#2a78d6',
+          borderRadius: 4,
+          maxBarThickness: 24
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { title: function(items) { return periods[items[0].dataIndex]; } } }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#e9ecef' } }
+        }
+      }
+    });
+  });
+</script>
+{% endif %}
+
+{% endblock %}

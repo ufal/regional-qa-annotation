@@ -23,7 +23,13 @@ class User:
                     annotations[a.wiki_title] = Annotation(obj)
         return annotations
 
-        
+    def load_all_saves(self):
+        """Every saved line, re-edits included, oldest first."""
+        with jsonlines.open(self.data_file) as reader:
+            saves = [Annotation(obj) for obj in reader]
+        return sorted(saves, key=lambda a: a.time_saved)
+
+
 def load_users_from_json(path):
     with open(path, "r") as f:
         data = json.load(f)

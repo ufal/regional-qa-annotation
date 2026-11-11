@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+import datetime
 import hashlib
 import jsonlines
+import math
 import os
 import random
 import requests
@@ -341,6 +343,95 @@ def admin_languages():
         order = {lang: i for i, lang in enumerate(WIKI_LANGS)}
         langs = dict(sorted(langs.items(), key=lambda kv: order.get(kv[0], len(order))))
         return render_template("admin_languages.html", user=user, langs=langs)
+    else:
+        return redirect(url_for("index"))
+
+ACTIVITY_PERIODS = ["day", "week", "month"]
+# number of shades in the activity heatmap, see admin_activity.html
+ACTIVITY_LEVELS = 5
+
+def period_start(timestamp, period):
+    d = datetime.date.fromtimestamp(timestamp)
+    if period == "week":
+        return d - datetime.timedelta(days=d.weekday())
+    if period == "month":
+        return d.replace(day=1)
+    return d
+
+def next_period(d, period):
+    if period == "week":
+        return d + datetime.timedelta(days=7)
+    if period == "month":
+        return (d.replace(day=28) + datetime.timedelta(days=4)).replace(day=1)
+    return d + datetime.timedelta(days=1)
+
+def period_labels(d, period):
+    """(short label for the table header, full label)"""
+    if period == "week":
+        year, week, _ = d.isocalendar()
+        return f"W{week}", f"{year}-W{week:02d} (from {d.isoformat()})"
+    if period == "month":
+        return d.strftime("%b %y"), d.strftime("%Y-%m")
+    return f"{d.day}.{d.month}.", d.isoformat()
+
+def activity(annotators, period):
+    """Per annotator and period: completed articles (the first non-skipped save
+    of an article), re-edits, skips and time spent, from every saved line."""
+    rows = []
+    for u in annotators:
+        cells = {}
+        completed = set()
+        for a in u.load_all_saves():
+            cell = cells.setdefault(period_start(a.time_saved, period),
+                                    {"completed": 0, "edits": 0, "skipped": 0, "seconds": 0.0})
+            if a.skipped:
+                cell["skipped"] += 1
+            elif a.wiki_title in completed:
+                cell["edits"] += 1
+            else:
+                completed.add(a.wiki_title)
+                cell["completed"] += 1
+            cell["seconds"] += a.time_saved - a.time_loaded
+        if cells:
+            rows.append({"user": u, "cells": cells, "first": min(cells), "total": len(completed)})
+    rows.sort(key=lambda r: r["first"])
+
+    # every period from the first activity to the last, so that gaps show
+    starts = []
+    if rows:
+        d, last = min(r["first"] for r in rows), max(max(r["cells"]) for r in rows)
+        while d <= last:
+            starts.append(d)
+            d = next_period(d, period)
+
+    top = max((c["completed"] for r in rows for c in r["cells"].values()), default=0)
+    for r in rows:
+        for c in r["cells"].values():
+            c["level"] = math.ceil(ACTIVITY_LEVELS * c["completed"] / top) if top else 0
+    totals = [sum(r["cells"][d]["completed"] for r in rows if d in r["cells"]) for d in starts]
+    return rows, starts, totals
+
+@app.route("/admin/activity")
+@logged_in
+def admin_activity():
+    users = load_users_from_json(USERS_FILE)
+    user = users[request.cookies.get("username")]
+    if user.role == "admin":
+        period = request.args.get("period")
+        if period not in ACTIVITY_PERIODS:
+            period = "week"
+        order = {lang: i for i, lang in enumerate(WIKI_LANGS)}
+        annotators = [u for u in users.values() if counted_in_stats(u)]
+        langs = sorted({u.lang for u in annotators}, key=lambda l: order.get(l, len(order)))
+        lang = request.args.get("lang")
+        if lang != "all" and lang not in langs:
+            lang = langs[0] if langs else "all"
+        rows, starts, totals = activity(
+            [u for u in annotators if lang in ("all", u.lang)], period)
+        return render_template(
+            "admin_activity.html", user=user, rows=rows, totals=totals,
+            periods=[(d, *period_labels(d, period)) for d in starts],
+            langs=langs, lang=lang, period=period, period_names=ACTIVITY_PERIODS)
     else:
         return redirect(url_for("index"))
 
